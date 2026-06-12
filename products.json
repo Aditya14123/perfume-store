@@ -1,0 +1,73 @@
+[
+  {
+    "id": 1,
+    "name": "Armaf Club de Nuit Intense Man Pure Parfum",
+    "size": "150ml EDP",
+    "price": "3200",
+    "stock": "in stock",
+    "visibility": true,
+    "images": [
+      "/uploads/1769161688817.webp",
+      "/uploads/1769163620541.webp",
+      "/uploads/1769163630532.webp",
+      "/uploads/1769163636432.webp"
+    ],
+    "description": "Discover the sophistication of Armaf Club De Nuit Intense Man Pure Parfum 150 ml. A bold, woody-spicy fragrance with notes of apple, bergamot, jasmine, and vanilla. Perfect for the modern man who seeks luxury and elegance in every spray.",
+    "category": "Middle Eastern Perfumes"
+  },
+  {
+    "id": 2,
+    "name": "Rasasi Hawas Ice",
+    "size": "100ml EDP",
+    "price": "3000",
+    "stock": "in stock",
+    "visibility": true,
+    "images": [
+      "/uploads/hawasICE1.webp",
+      "/uploads/hawasICE2.webp"
+    ],
+    "description": "Hawas Ice by Rasasi is a Aromatic fragrance for men. Hawas Ice was launched in 2023. Top notes are Apple, Italian Lemon, Sicilian Bergamot and Star Anise; middle notes are Plum, Orange Blossom and Cardamon; base notes are Musk, Amber, Driftwood and Moss.",
+    "category": "Middle Eastern Perfumes"
+  },
+  {
+    "id": 1769078485319,
+    "name": "Lattafa Khamrah Qahwa",
+    "size": "100ml EDP",
+    "price": "2099",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Middle Eastern Perfumes",
+    "description": "Khamrah Qahwa by Lattafa Perfumes is a Oriental Vanilla fragrance for women and men. Khamrah Qahwa was launched in 2023. Top notes are Cinnamon, Cardamom and Ginger; middle notes are Praline, Candied Fruits and White Flowers; base notes are Vanilla, Coffee, Tonka Bean, Benzoin and Musk.",
+    "images": [
+      "/uploads/1769161864199.jfif"
+    ]
+  },
+  {
+    "id": 1770118933153,
+    "name": "Afnan Supremacy Collector's Edition",
+    "size": "100ml EDP",
+    "price": "3800",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Middle Eastern Perfumes",
+    "description": "Supremacy Collector's Edition is a captivating masculine fragrance that honors the legacy of Afnan's beloved Supremacy collection. This exquisite scent combines the classic allure of a timeless classic with a refreshing twist of white floral and amber notes, creating a sophisticated and invigorating scent experience perfect for special occasions.",
+    "images": [
+      "/uploads/SCE2.webp",
+      "/uploads/SCEwithbox.webp",
+      "/uploads/SupremacyCollectionsEditionFront_Gray.webp"
+    ]
+  },
+  {
+    "id": 1781259024041,
+    "name": "Armaf Dunescape",
+    "size": "100ml",
+    "price": "3100",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Middle Eastern Perfumes",
+    "description": "Dunescape opens with bright citrus and herbaceous top notes including lemon, mandarin, bergamot, blood orange, ginger oil, juniper, and sage. The heart develops ozonic florals with geranium, rose, and apple alongside cashmeran. The base features warm amber, musk, and sandalwood, creating an earthy, woody finish.",
+    "images": [
+      "https://aurelsg.com/cdn/shop/files/513a_-_armaf_dunescape.png?v=1766991708"
+    ]
+  }
+]
