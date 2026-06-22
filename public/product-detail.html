@@ -11,11 +11,6 @@
   <nav class="navbar">
   <div class="container navbar-container">
     <a href="/" class="navbar-brand">Perfume Store</a>
-    <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
     <ul class="navbar-nav" id="navMenu">
       <li><a href="/">Home</a></li>
       <li><a href="/products">Products</a></li>
@@ -23,9 +18,32 @@
       <li><a href="/delivery-payment">Delivery & Payment</a></li>
       <li><a href="/contact">Contact</a></li>
     </ul>
+    <div class="navbar-actions">
+      <button class="navbar-search-toggle" id="navSearchToggle" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+      <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </div>
 </nav>
 <div class="navbar-overlay" id="navOverlay"></div>
+<div class="nav-search-overlay" id="navSearchOverlay">
+  <div class="nav-search-box">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input type="text" id="navSearchInput" placeholder="Search perfumes..." autocomplete="off">
+    <button id="navSearchClose" aria-label="Close search">&times;</button>
+  </div>
+</div>
 
   <section class="product-detail">
   <div class="container">

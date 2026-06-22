@@ -573,6 +573,74 @@ if (window.location.pathname === '/products') {
   });
 })();
 
+// ============================================
+// NAVBAR SEARCH OVERLAY
+// ============================================
+(function() {
+  const searchToggle = document.getElementById('navSearchToggle');
+  const searchOverlay = document.getElementById('navSearchOverlay');
+  const searchInput = document.getElementById('navSearchInput');
+  const searchClose = document.getElementById('navSearchClose');
+
+  if (!searchToggle || !searchOverlay) return;
+
+  function openSearch() {
+    searchOverlay.classList.add('active');
+    setTimeout(() => searchInput?.focus(), 50);
+  }
+
+  function closeSearch() {
+    searchOverlay.classList.remove('active');
+  }
+
+  searchToggle.addEventListener('click', openSearch);
+  searchClose?.addEventListener('click', closeSearch);
+
+  searchOverlay.addEventListener('click', (e) => {
+    if (e.target === searchOverlay) closeSearch();
+  });
+
+  searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSearch();
+      return;
+    }
+    if (e.key === 'Enter') {
+      const query = searchInput.value.trim();
+      if (window.location.pathname === '/products') {
+        // Already on products page - just fill the search bar
+        const productsSearchBar = document.getElementById('searchBar');
+        if (productsSearchBar) {
+          productsSearchBar.value = query;
+          productsSearchBar.dispatchEvent(new Event('input'));
+        }
+        closeSearch();
+      } else {
+        // Redirect to products page with query param
+        window.location.href = `/products?search=${encodeURIComponent(query)}`;
+      }
+    }
+  });
+})();
+
+// Pre-fill products page search bar from URL param (?search=...)
+if (window.location.pathname === '/products') {
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search');
+  if (searchQuery) {
+    const productsSearchBar = document.getElementById('searchBar');
+    if (productsSearchBar) {
+      // Wait for products to load first
+      const fillSearch = () => {
+        productsSearchBar.value = searchQuery;
+        productsSearchBar.dispatchEvent(new Event('input'));
+      };
+      // Small delay to ensure loadProducts() has run
+      setTimeout(fillSearch, 300);
+    }
+  }
+}
+
 // MULTI-PRODUCT WHATSAPP ORDER SYSTEM
 
 
