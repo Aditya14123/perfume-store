@@ -533,6 +533,46 @@ if (window.location.pathname === '/products') {
   loadProductDetail(); // Product detail page
 }
 
+// ============================================
+// MOBILE NAVBAR TOGGLE
+// ============================================
+(function() {
+  const toggle = document.getElementById('navToggle');
+  const menu = document.getElementById('navMenu');
+  const overlay = document.getElementById('navOverlay');
+
+  if (!toggle || !menu) return;
+
+  function openMenu() {
+    menu.classList.add('open');
+    toggle.classList.add('active');
+    overlay?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    menu.classList.remove('open');
+    toggle.classList.remove('active');
+    overlay?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  toggle.addEventListener('click', () => {
+    if (menu.classList.contains('open')) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  overlay?.addEventListener('click', closeMenu);
+
+  // Close menu when a nav link is clicked
+  menu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+})();
+
 // MULTI-PRODUCT WHATSAPP ORDER SYSTEM
 
 

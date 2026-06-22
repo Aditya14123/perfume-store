@@ -8,18 +8,24 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="navbar-brand">Perfume Store</a>
-      <ul class="navbar-nav">
-        <li><a href="/">Home</a></li>
-        <li><a href="/products">Products</a></li>
-        <li><a href="/how-it-works">How It Works</a></li>
-        <li><a href="/delivery-payment">Delivery & Payment</a></li>
-        <li><a href="/contact">Contact</a></li>
-      </ul>
-    </div>
-  </nav>
+<nav class="navbar">
+  <div class="container navbar-container">
+    <a href="/" class="navbar-brand">Perfume Store</a>
+    <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+      <li><a href="/how-it-works">How It Works</a></li>
+      <li><a href="/delivery-payment">Delivery & Payment</a></li>
+      <li><a href="/contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="navbar-overlay" id="navOverlay"></div>
 
   <section class="hero">
     <div class="container">
