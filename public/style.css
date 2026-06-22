@@ -260,21 +260,78 @@ body {
 
 /* Hero Section */
 .hero {
-  padding: 80px 0;
+  position: relative;
+  padding: 100px 0;
   text-align: center;
   background-color: #FFF;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08), transparent 60%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
 }
 
 .hero h1 {
   font-size: 2.5rem;
   margin-bottom: 20px;
   font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .hero p {
   font-size: 1.2rem;
   color: #666;
   margin-bottom: 30px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Entrance animation */
+.hero-fade-1,
+.hero-fade-2,
+.hero-fade-3 {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: heroFadeUp 0.7s ease forwards;
+}
+
+.hero-fade-1 {
+  animation-delay: 0.1s;
+}
+
+.hero-fade-2 {
+  animation-delay: 0.28s;
+}
+
+.hero-fade-3 {
+  animation-delay: 0.46s;
+}
+
+@keyframes heroFadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-1,
+  .hero-fade-2,
+  .hero-fade-3 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Supporting Sections */
@@ -380,7 +437,9 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
-  /* height: 100%; */
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  will-change: transform;
 }
 
 .product-card img {
@@ -392,6 +451,29 @@ body {
   border-radius: 4px;
   margin-bottom: 15px;
   flex-shrink: 0;
+  transition: transform 0.4s ease;
+}
+
+/* Hover effects - mouse/trackpad devices only */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    border-color: #D4AF37;
+  }
+
+  .product-card:hover img {
+    transform: scale(1.08);
+  }
+}
+
+/* Tap feedback - touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .product-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
 }
 
 .product-card h3 {
@@ -435,12 +517,38 @@ body {
   position: absolute;
   bottom: 10px;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(212, 175, 55, 0.8);
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(212, 175, 55, 0.9);
   color: #FFF;
   padding: 5px 10px;
   border-radius: 4px;
   font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.product-card h3 {
+  transition: color 0.3s ease;
+}
+
+/* Show badge + title color change only on hover-capable devices */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .product-card:hover h3 {
+    color: #B8941F;
+  }
+}
+
+/* On touch devices, badge is always subtly visible since hover can't reveal it */
+@media (hover: none) and (pointer: coarse) {
+  .product-card::after {
+    opacity: 0.85;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* Disclaimer */
@@ -578,8 +686,25 @@ body {
   transition: background-color 0.2s;
 }
 
+.btn {
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 .btn:hover {
   background-color: #B8941F;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.35);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn:active {
+    transform: scale(0.96);
+  }
 }
 
 .btn:disabled {
