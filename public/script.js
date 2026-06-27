@@ -3,10 +3,15 @@ let currentCategory = 'all'; // For category filtering
 
 // Load and display products on public pages
 async function loadProducts(containerId, filterVisible = true) {
-  const response = await fetch('/api/products');
-  const products = await response.json();
-  allProducts = filterVisible ? products.filter(p => p.visibility) : products;
-  filterProducts(); // Apply initial filter
+  try {
+    const response = await fetch('/api/products');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const products = await response.json();
+    allProducts = filterVisible ? products.filter(p => p.visibility) : products;
+    filterProducts();
+  } catch (err) {
+    console.error('Failed to load products:', err);
+  }
 }
 
 // function renderProducts(containerId, products) {
@@ -30,14 +35,15 @@ async function loadProducts(containerId, filterVisible = true) {
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
 
 function renderProducts(containerId, products) {
   const container = document.getElementById(containerId);
+  if (!container) return;
   container.innerHTML = products.map(p => {
     const name = escapeHtml(p.name || '');
     const size = escapeHtml(p.size || '');
@@ -64,9 +70,22 @@ function renderProducts(containerId, products) {
 // Load product detail
 async function loadProductDetail() {
   const id = window.location.pathname.split('/').pop();
-  const response = await fetch('/api/products');
-  const products = await response.json();
-  const product = products.find(p => p.id == id);
+  let product;
+  try {
+    const response = await fetch(`/api/products/${id}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    product = await response.json();
+  } catch (err) {
+    console.error('Failed to load product detail:', err);
+    const container = document.getElementById('productDetail');
+    if (container) container.innerHTML = '<p>Failed to load product details. Please try again.</p>';
+    return;
+  }
+  if (product && product.visibility === false) {
+    const container = document.getElementById('productDetail');
+    if (container) container.innerHTML = '<p>This product is currently not available.</p>';
+    return;
+  }
   if (product) {
     // Ensure fields exist to avoid runtime crashes
     const images = Array.isArray(product.images) ? product.images : [];
@@ -90,14 +109,14 @@ async function loadProductDetail() {
 
         </div>
         <div class="detail-info">
-          <h1>${String(product.name || '')}</h1>
-          <p><strong>Size:</strong> ${String(product.size || '')}</p>
-          <p class="price"><strong>Price:</strong> ₹${String(product.price || '')} (Approx – confirm on WhatsApp)</p>
-          <p class="stock ${stockLabel === 'out of stock' ? 'out-of-stock' : ''}"><strong>Stock:</strong> ${String(stockLabel)}</p>
+          <h1>${escapeHtml(product.name || '')}</h1>
+          <p><strong>Size:</strong> ${escapeHtml(product.size || '')}</p>
+          <p class="price"><strong>Price:</strong> ₹${escapeHtml(product.price || '')} (Approx – confirm on WhatsApp)</p>
+          <p class="stock ${stockLabel === 'out of stock' ? 'out-of-stock' : ''}"><strong>Stock:</strong> ${escapeHtml(stockLabel)}</p>
           <p>${escapeHtml(product.description || '')}</p>
 
 
-          <a href="https://wa.me/9407114022?text=Hi, I'm interested in ${String(product.name || '')} (${String(product.size || '')})!" class="btn" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>Contact on WhatsApp</a>
+          <a href="https://wa.me/919407114022?text=${encodeURIComponent("Hi, I'm interested in " + (product.name || "") + " (" + (product.size || "") + ")!")}" class="btn" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>Contact on WhatsApp</a>
 
 
         </div>
@@ -181,28 +200,35 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   document.getElementById('adminPanel').style.display = 'none';
 
   // Use a protected route to validate the token
-  const response = await fetch('/api/auth', {
-    headers: { 'x-admin-token': token }
-  });
+  try {
+    const response = await fetch('/api/auth', {
+      headers: { 'x-admin-token': token }
+    });
 
-  if (response.status === 401) {
-    alert('Invalid admin token');
-    return;
+    if (response.status === 401) {
+      alert('Invalid admin token');
+      return;
+    }
+
+    sessionStorage.setItem('adminToken', token);
+    document.getElementById('adminPanel').style.display = 'block';
+    loadAdminProducts();
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Failed to connect to server. Please try again.');
   }
-
-  sessionStorage.setItem('adminToken', token);
-  document.getElementById('adminPanel').style.display = 'block';
-  loadAdminProducts();
 });
 
 
 // Load products in admin
 async function loadAdminProducts() {
+  try {
   // Read-only is public, but keep auth header for future-proofing
   const adminToken = sessionStorage.getItem('adminToken');
   const response = await fetch('/api/products', {
     headers: adminToken ? { 'x-admin-token': adminToken } : undefined
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const products = await response.json();
 
   const container = document.getElementById('productsList');
@@ -279,70 +305,99 @@ async function loadAdminProducts() {
     `;
   }).join('');
 
+  } catch (err) {
+    console.error('Failed to load admin products:', err);
+    alert('Failed to load products. Please try again.');
+  }
 }
 
 // Update product
 async function updateProduct(id) {
-  const name = document.getElementById(`name-${id}`).value;
-  const size = document.getElementById(`size-${id}`).value;
-  const price = document.getElementById(`price-${id}`).value;
-  const stock = document.getElementById(`stock-${id}`).value;
-  const visibility = document.getElementById(`visibility-${id}`).checked;
-  const category = document.getElementById(`category-${id}`).value;
-  const description = document.getElementById(`description-${id}`).value;
-  const images = Array.from(document.querySelectorAll(`#images-${id} input`)).map(input => input.value);
-  const adminToken = sessionStorage.getItem('adminToken');
-  await fetch(`/api/products/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(adminToken ? { 'x-admin-token': adminToken } : {})
-    },
-    body: JSON.stringify({ name, size, price, stock, visibility, category, description, images })
-  });
+  try {
+    const name = document.getElementById(`name-${id}`).value;
+    const size = document.getElementById(`size-${id}`).value;
+    const price = document.getElementById(`price-${id}`).value;
+    const stock = document.getElementById(`stock-${id}`).value;
+    const visibility = document.getElementById(`visibility-${id}`).checked;
+    const category = document.getElementById(`category-${id}`).value;
+    const description = document.getElementById(`description-${id}`).value;
+    const images = Array.from(document.querySelectorAll(`#images-${id} input`)).map(input => input.value);
+    const adminToken = sessionStorage.getItem('adminToken');
+    const response = await fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(adminToken ? { 'x-admin-token': adminToken } : {})
+      },
+      body: JSON.stringify({ name, size, price, stock, visibility, category, description, images })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-  loadAdminProducts();
-  if (window.location.pathname === '/products') loadProducts('allProducts');
+    loadAdminProducts();
+    if (window.location.pathname === '/products') loadProducts('allProducts');
+  } catch (err) {
+    console.error('Failed to update product:', err);
+    alert('Failed to update product. Please try again.');
+  }
 }
 
 // Delete product
 async function deleteProduct(id) {
-  const adminToken = sessionStorage.getItem('adminToken');
-  await fetch(`/api/products/${id}`, {
-    method: 'DELETE',
-    headers: adminToken ? { 'x-admin-token': adminToken } : undefined
-  });
+  try {
+    const adminToken = sessionStorage.getItem('adminToken');
+    const response = await fetch(`/api/products/${id}`, {
+      method: 'DELETE',
+      headers: adminToken ? { 'x-admin-token': adminToken } : undefined
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-  loadAdminProducts();
-  if (window.location.pathname === '/products') loadProducts('allProducts');
+    loadAdminProducts();
+    if (window.location.pathname === '/products') loadProducts('allProducts');
+  } catch (err) {
+    console.error('Failed to delete product:', err);
+    alert('Failed to delete product. Please try again.');
+  }
 }
 
 // Image management
 async function uploadImage(id) {
   const fileInput = document.getElementById(`upload-${id}`);
   if (!fileInput.files || fileInput.files.length === 0) return alert('Select files first');
-  const formData = new FormData();
-  for (const file of fileInput.files) {
-    formData.append('images', file); // Multiple files
-  }
-  formData.append('productId', id); // Pass productId for structured dir
-  const adminToken = sessionStorage.getItem('adminToken');
-  const response = await fetch('/api/upload', {
-    method: 'POST',
-    headers: adminToken ? { 'x-admin-token': adminToken } : undefined,
-    body: formData
-  });
-
-  const data = await response.json();
-  if (data.urls) {
-    const imagesDiv = document.getElementById(`images-${id}`);
-    data.urls.forEach(url => {
-      const newInput = document.createElement('div');
-      newInput.innerHTML = `<input type="text" value="${url}"><button onclick="removeImage(${id}, ${imagesDiv.children.length})">Remove</button>`;
-      imagesDiv.appendChild(newInput);
+  try {
+    const formData = new FormData();
+    for (const file of fileInput.files) {
+      formData.append('images', file); // Multiple files
+    }
+    formData.append('productId', id); // Pass productId for structured dir
+    const adminToken = sessionStorage.getItem('adminToken');
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: adminToken ? { 'x-admin-token': adminToken } : undefined,
+      body: formData
     });
-  } else {
-    alert('Upload failed');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    if (data.urls) {
+      const imagesDiv = document.getElementById(`images-${id}`);
+      data.urls.forEach(url => {
+        const newInput = document.createElement('div');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = url;
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => newInput.remove());
+        newInput.appendChild(input);
+        newInput.appendChild(removeBtn);
+        imagesDiv.appendChild(newInput);
+      });
+    } else {
+      alert('Upload failed');
+    }
+  } catch (err) {
+    console.error('Failed to upload image:', err);
+    alert('Failed to upload image. Please try again.');
   }
 }
 
@@ -781,3 +836,11 @@ if (window.location.pathname === '/products') {
 //     closeOrderModal();
 //   }
 // });
+
+// Initialize AOS (Animate On Scroll)
+if (typeof AOS !== 'undefined') {
+  AOS.init({
+    once: true,
+    offset: 50,
+  });
+}

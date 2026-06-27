@@ -17,7 +17,11 @@ const MAX_FILE_SIZE_BYTES = process.env.MAX_FILE_SIZE_BYTES
   : 5 * 1024 * 1024;
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'a8f3c9e2-b4d1-4f7a-9e2c-8b5a3d7f9e1c';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+if (!ADMIN_TOKEN) {
+  console.error('FATAL: ADMIN_TOKEN is not set in .env. Server cannot start without it.');
+  process.exit(1);
+}
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
 const PRODUCTS_FILE = path.join(__dirname, 'products.json');
 
@@ -106,7 +110,7 @@ async function getAllProducts() {
 async function getProductById(id) {
   if (!useDatabase) {
     const products = loadProductsFromFile();
-    return products.find(p => p.id == id) || null;
+    return products.find(p => p.id === Number(id)) || null;
   }
   const result = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
   if (result.rows.length === 0) return null;
@@ -137,7 +141,7 @@ async function createProduct(product) {
 async function updateProduct(id, updates) {
   if (!useDatabase) {
     const products = loadProductsFromFile();
-    const index = products.findIndex(p => p.id == id);
+    const index = products.findIndex(p => p.id === Number(id));
     if (index === -1) return null;
     const updated = normalizeProduct({ ...products[index], ...updates, id: products[index].id });
     products[index] = updated;
@@ -159,12 +163,13 @@ async function updateProduct(id, updates) {
 async function deleteProduct(id) {
   if (!useDatabase) {
     const products = loadProductsFromFile();
-    const filtered = products.filter(p => p.id != id);
+    const len = products.length;
+    const filtered = products.filter(p => p.id !== Number(id));
     saveProductsToFile(filtered);
-    return true;
+    return filtered.length < len;
   }
-  await pool.query('DELETE FROM products WHERE id = $1', [id]);
-  return true;
+  const result = await pool.query('DELETE FROM products WHERE id = $1', [id]);
+  return result.rowCount > 0;
 }
 
 // ─── App setup ────────────────────────────────────────────────────────────────
@@ -180,7 +185,7 @@ app.use(rateLimit({
   message: { error: 'Too many requests, please try again later.' }
 }));
 
-app.use(cors());
+// CORS removed - frontend is served from same origin
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -229,7 +234,12 @@ app.get('/api/auth', requireAdmin, (req, res) => {
 // Get all products (public)
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await getAllProducts();
+    let products = await getAllProducts();
+    const token = req.header('x-admin-token');
+    if (!token || token !== ADMIN_TOKEN) {
+      // Filter out hidden products for public requests
+      products = products.filter(p => p.visibility);
+    }
     res.json(products);
   } catch (err) {
     console.error('GET /api/products error:', err);
@@ -237,10 +247,23 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// Get single product (public)
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await getProductById(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    console.error('GET /api/products/:id error:', err);
+    res.status(500).json({ error: 'Failed to load product' });
+  }
+});
+
 // Create product (admin)
 app.post('/api/products', requireAdmin, async (req, res) => {
   try {
-    const newProduct = await createProduct({ id: Date.now(), ...req.body });
+    const uniqueId = Date.now() * 1000 + crypto.randomInt(1000);
+    const newProduct = await createProduct({ id: uniqueId, ...req.body });
     res.json(newProduct);
   } catch (err) {
     console.error('POST /api/products error:', err);
@@ -263,7 +286,8 @@ app.put('/api/products/:id', requireAdmin, async (req, res) => {
 // Delete product (admin)
 app.delete('/api/products/:id', requireAdmin, async (req, res) => {
   try {
-    await deleteProduct(req.params.id);
+    const deleted = await deleteProduct(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Product not found' });
     res.json({ message: 'Deleted' });
   } catch (err) {
     console.error('DELETE /api/products error:', err);
@@ -285,44 +309,26 @@ app.post('/api/upload', requireAdmin, upload.array('images', 10), async (req, re
     const absolutePath = file.path;
     const fileBuffer = await fs.readFile(absolutePath);
     const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
-    let existingPath = null;
+    const ext = path.extname(file.originalname).toLowerCase();
+    
+    // Use the hash as the new filename for O(1) deduplication
+    const newFilename = `${hash}${ext}`;
+    const prodDir = path.join(__dirname, 'public', 'uploads', 'products', productId);
+    const targetPath = path.join(prodDir, newFilename);
+    const publicUrl = `/uploads/products/${productId}/${newFilename}`;
 
-    // Check flat /uploads
-    try {
-      const flatDir = path.join(__dirname, 'public', 'uploads');
-      if (fsSync.existsSync(flatDir)) {
-        const flatFiles = await fs.readdir(flatDir);
-        for (const f of flatFiles) {
-          const p = path.join(flatDir, f);
-          if (fsSync.lstatSync(p).isFile()) {
-            const buf = await fs.readFile(p);
-            const h = crypto.createHash('sha256').update(buf).digest('hex');
-            if (h === hash) { existingPath = `/uploads/${f}`; break; }
-          }
-        }
-      }
-    } catch (_) {}
-
-    // Check structured product folder
-    if (!existingPath) {
+    if (absolutePath !== targetPath) {
       try {
-        const prodDir = path.join(__dirname, 'public', 'uploads', 'products', productId);
-        const files = await fs.readdir(prodDir);
-        for (const f of files) {
-          const p = path.join(prodDir, f);
-          const buf = await fs.readFile(p);
-          const h = crypto.createHash('sha256').update(buf).digest('hex');
-          if (h === hash) { existingPath = `/uploads/products/${productId}/${f}`; break; }
-        }
-      } catch (_) {}
+        await fs.access(targetPath);
+        // Duplicate exists, remove the freshly uploaded temp file
+        await fs.unlink(absolutePath);
+      } catch (err) {
+        // Doesn't exist, rename it to the hashed name
+        await fs.rename(absolutePath, targetPath);
+      }
     }
 
-    if (existingPath) {
-      await fs.unlink(absolutePath);
-      uploadedUrls.push(existingPath);
-    } else {
-      uploadedUrls.push(`/uploads/products/${productId}/${file.filename}`);
-    }
+    uploadedUrls.push(publicUrl);
   }
 
   res.json({ urls: uploadedUrls });
@@ -338,6 +344,20 @@ app.get('/delivery-payment', (req, res) => res.sendFile(pub('delivery-payment.ht
 app.get('/contact', (req, res) => res.sendFile(pub('contact.html')));
 app.get('/admin', (req, res) => res.sendFile(pub('admin.html')));
 
+// ─── Error Handling ─────────────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File size exceeds the 5MB limit.' });
+    }
+    return res.status(400).json({ error: err.message });
+  } else if (err) {
+    console.error('Unhandled server error:', err);
+    return res.status(500).json({ error: err.message || 'Internal server error.' });
+  }
+  next();
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 async function start() {
   await initDB();
@@ -348,242 +368,3 @@ start().catch(err => {
   console.error('Failed to start server:', err);
   process.exit(1);
 });
-
-
-// const express = require('express');
-// const fsSync = require('fs');
-// const path = require('path');
-// const cors = require('cors');
-// const multer = require('multer');
-// const crypto = require('crypto');
-// const fs = require('fs').promises; // For async file operations
-
-// // Limit basic upload types/size for safer deployments
-// const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-// const MAX_FILE_SIZE_BYTES = process.env.MAX_FILE_SIZE_BYTES
-//   ? Number(process.env.MAX_FILE_SIZE_BYTES)
-//   : 5 * 1024 * 1024; // 5MB default
-
-
-// const app = express();
-// const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-// const PRODUCTS_FILE = path.join(__dirname, 'products.json');
-// const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
-
-// // Admin auth (production-friendly): JWT-like shared secret via header
-// // Configure via env vars on deploy.
-// const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'a8f3c9e2-b4d1-4f7a-9e2c-8b5a3d7f9e1c';
-// function requireAdmin(req, res, next) {
-//   if (!ADMIN_TOKEN) {
-//     return res.status(500).json({ error: 'Server misconfigured: ADMIN_TOKEN is not set' });
-//   }
-//   const token = req.header('x-admin-token');
-//   if (!token || token !== ADMIN_TOKEN) {
-//     return res.status(401).json({ error: 'Unauthorized' });
-//   }
-//   next();
-// }
-
-
-// // Ensure upload directory exists
-// if (!fsSync.existsSync(UPLOAD_DIR)) {
-//   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-// }
-
-// // Multer setup for image uploads
-// const storage = multer.diskStorage({
-//   destination: async (req, file, cb) => {
-
-//     const rawProductId = req.body.productId || 'temp';
-//     const productId = String(rawProductId).replace(/[^a-zA-Z0-9_-]/g, '');
-//     const dir = path.join(__dirname, 'public', 'uploads', 'products', productId);
-
-//     try {
-//       await fs.mkdir(dir, { recursive: true });
-//       cb(null, dir);
-//     } catch (err) {
-//       cb(err);
-//     }
-//   },
-//   filename: (req, file, cb) => {
-//     const ext = path.extname(file.originalname).toLowerCase();
-//     const base = path
-//       .basename(file.originalname, ext)
-//       .replace(/[^a-zA-Z0-9]/g, '_')
-//       .toLowerCase();
-
-//     cb(null, `${base}_${Date.now()}${ext}`);
-//   }
-// });
-// const upload = multer({
-//   storage,
-//   limits: {
-//     fileSize: MAX_FILE_SIZE_BYTES
-//   },
-//   fileFilter: (req, file, cb) => {
-//     // Basic type allowlist
-//     const isAllowed = ALLOWED_MIME.has(file.mimetype);
-//     if (!isAllowed) return cb(new Error('Invalid file type'));
-//     cb(null, true);
-//   }
-// });
-
-
-// // Middleware
-// app.use(cors());
-// app.use(express.json());
-// app.use(express.static('public'));
-
-// // Load products from JSON
-// function loadProducts() {
-//   if (!fsSync.existsSync(PRODUCTS_FILE)) {
-//     fsSync.writeFileSync(PRODUCTS_FILE, JSON.stringify([]));
-//   }
-//   return JSON.parse(fsSync.readFileSync(PRODUCTS_FILE));
-// }
-
-// // Save products to JSON
-// function saveProducts(products) {
-//   fsSync.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
-// }
-
-// // API Routes (public read)
-// app.get('/api/products', (req, res) => {
-//   res.json(loadProducts());
-// });
-
-// // API Routes (admin write)
-// app.post('/api/products', requireAdmin, (req, res) => {
-//   const products = loadProducts();
-//   const newProduct = normalizeProduct({ id: Date.now(), ...req.body });
-//   products.push(newProduct);
-//   saveProducts(products);
-//   res.json(newProduct);
-// });
-
-// app.put('/api/products/:id', requireAdmin, (req, res) => {
-//   const products = loadProducts();
-//   const index = products.findIndex(p => p.id == req.params.id);
-//   if (index !== -1) {
-//     const updated = normalizeProduct({ ...products[index], ...req.body, id: products[index].id });
-//     products[index] = updated;
-//     saveProducts(products);
-//     res.json(updated);
-//   } else {
-//     res.status(404).json({ error: 'Product not found' });
-//   }
-// });
-
-// app.delete('/api/products/:id', requireAdmin, (req, res) => {
-//   const products = loadProducts();
-//   const filtered = products.filter(p => p.id != req.params.id);
-//   saveProducts(filtered);
-//   res.json({ message: 'Deleted' });
-// });
-
-
-// // Normalize product to keep schema consistent
-// function normalizeProduct(p) {
-//   const safe = { ...p };
-
-//   safe.id = Number(safe.id);
-//   if (!Number.isFinite(safe.id)) safe.id = Date.now();
-
-//   safe.name = safe.name ? String(safe.name) : '';
-//   safe.size = safe.size ? String(safe.size) : '';
-//   safe.price = safe.price !== undefined && safe.price !== null ? String(safe.price) : '';
-
-//   // Accept both legacy and consistent stock values
-//   const stock = safe.stock ? String(safe.stock) : 'in stock';
-//   safe.stock = stock;
-
-//   safe.visibility = typeof safe.visibility === 'boolean' ? safe.visibility : true;
-//   safe.category = safe.category ? String(safe.category) : 'Middle Eastern Perfumes';
-//   safe.description = safe.description ? String(safe.description) : '';
-
-//   safe.images = Array.isArray(safe.images) ? safe.images.map(x => String(x)) : [];
-
-//   return safe;
-// }
-
-// // Image upload route (multi-file + deduplication)
-// app.post('/api/upload', requireAdmin, upload.array('images', 10), async (req, res) => {
-//   if (!req.files || req.files.length === 0) {
-//     return res.status(400).json({ error: 'No files uploaded' });
-//   }
-
-//   const rawProductId = req.body.productId || 'temp';
-//   const productId = String(rawProductId).replace(/[^a-zA-Z0-9_-]/g, '');
-//   const uploadedUrls = [];
-
-
-//   for (const file of req.files) {
-//     const absolutePath = file.path;
-//     const fileBuffer = await fs.readFile(absolutePath);
-//     const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
-
-//     let existingPath = null;
-
-//     // 1️⃣ Check flat /uploads (backward compatibility)
-//     try {
-//       const flatDir = path.join(__dirname, 'public', 'uploads');
-//       if (fsSync.existsSync(flatDir)) {
-//         const flatFiles = await fs.readdir(flatDir);
-//         for (const f of flatFiles) {
-//           const p = path.join(flatDir, f);
-//           if (fsSync.lstatSync(p).isFile()) {
-//             const buf = await fs.readFile(p);
-//             const h = crypto.createHash('sha256').update(buf).digest('hex');
-//             if (h === hash) {
-//               existingPath = `/uploads/${f}`;
-//               break;
-//             }
-//           }
-//         }
-//       }
-//     } catch (_) {}
-
-//     // 2️⃣ Check structured product folder
-//     if (!existingPath) {
-//       try {
-//         const prodDir = path.join(__dirname, 'public', 'uploads', 'products', productId);
-//         const files = await fs.readdir(prodDir);
-//         for (const f of files) {
-//           const p = path.join(prodDir, f);
-//           const buf = await fs.readFile(p);
-//           const h = crypto.createHash('sha256').update(buf).digest('hex');
-//           if (h === hash) {
-//             existingPath = `/uploads/products/${productId}/${f}`;
-//             break;
-//           }
-//         }
-//       } catch (_) {}
-//     }
-
-//     if (existingPath) {
-//       // Duplicate found → remove newly uploaded file
-//       await fs.unlink(absolutePath);
-//       uploadedUrls.push(existingPath);
-//     } else {
-//       // New image → keep it
-//       uploadedUrls.push(`/uploads/products/${productId}/${file.filename}`);
-//     }
-//   }
-
-//   res.json({ urls: uploadedUrls });
-// });
-
-// // Serve HTML files
-// app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-// app.get('/products', (req, res) => res.sendFile(path.join(__dirname, 'public', 'products.html')));
-// app.get('/product/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'product-detail.html')));
-// app.get('/how-it-works', (req, res) => res.sendFile(path.join(__dirname, 'public', 'how-it-works.html')));
-// app.get('/delivery-payment', (req, res) => res.sendFile(path.join(__dirname, 'public', 'delivery-payment.html')));
-// app.get('/contact', (req, res) => res.sendFile(path.join(__dirname, 'public', 'contact.html')));
-// app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-// // Auth check route - protected
-// app.get('/api/auth', requireAdmin, (req, res) => {
-//   res.json({ ok: true });
-// });
-
-// app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

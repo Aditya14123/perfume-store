@@ -3,6 +3,11 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL is not set. Please configure it in .env before running migrations.');
+  process.exit(1);
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -48,6 +53,7 @@ async function migrate() {
   }
 
   console.log('Migration complete!');
+  await pool.end();
   process.exit(0);
 }
 
