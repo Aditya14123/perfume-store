@@ -116,7 +116,10 @@ async function loadProductDetail() {
           <p>${escapeHtml(product.description || '')}</p>
 
 
-          <a href="https://wa.me/919407114022?text=${encodeURIComponent("Hi, I'm interested in " + (product.name || "") + " (" + (product.size || "") + ")!")}" class="btn" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>Contact on WhatsApp</a>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="addToOrder('${product.id}', '${escapeHtml((product.name || '').replace(/'/g, "\\'"))}', '${escapeHtml(product.size)}', '${escapeHtml(product.price)}', '${escapeHtml(images[0] || '')}')" class="btn btn-secondary" ${stockLabel === 'out of stock' ? 'disabled' : ''} style="flex: 1; cursor: pointer; font-weight: 600;">Add to Cart</button>
+            <a href="https://wa.me/919407114022?text=${encodeURIComponent("Hi, I'm interested in " + (product.name || "") + " (" + (product.size || "") + ")!")}" class="btn btn-primary" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5; flex: 1;"' : 'style="flex: 1;"'}>Buy Now</a>
+          </div>
 
 
         </div>
@@ -636,16 +639,43 @@ if (window.location.pathname === '/products') {
   const searchOverlay = document.getElementById('navSearchOverlay');
   const searchInput = document.getElementById('navSearchInput');
   const searchClose = document.getElementById('navSearchClose');
+  const searchBox = document.querySelector('.nav-search-box');
 
-  if (!searchToggle || !searchOverlay) return;
+  if (!searchToggle || !searchOverlay || !searchBox || !searchInput) return;
 
-  function openSearch() {
+  // Inject search results container
+  let resultsContainer = document.getElementById('navSearchResults');
+  if (!resultsContainer) {
+    resultsContainer = document.createElement('div');
+    resultsContainer.id = 'navSearchResults';
+    resultsContainer.className = 'nav-search-results';
+    searchBox.appendChild(resultsContainer);
+  }
+
+  let searchProducts = null;
+
+  async function openSearch() {
     searchOverlay.classList.add('active');
     setTimeout(() => searchInput?.focus(), 50);
+    
+    // Fetch products if not already loaded
+    if (!searchProducts) {
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          searchProducts = data.filter(p => p.visibility);
+        }
+      } catch (err) {
+        console.error('Failed to load products for search', err);
+      }
+    }
   }
 
   function closeSearch() {
     searchOverlay.classList.remove('active');
+    resultsContainer.classList.remove('active');
+    searchInput.value = '';
   }
 
   searchToggle.addEventListener('click', openSearch);
@@ -655,7 +685,38 @@ if (window.location.pathname === '/products') {
     if (e.target === searchOverlay) closeSearch();
   });
 
-  searchInput?.addEventListener('keydown', (e) => {
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    
+    if (!query) {
+      resultsContainer.classList.remove('active');
+      return;
+    }
+
+    if (searchProducts) {
+      const filtered = searchProducts.filter(p => p.name.toLowerCase().includes(query));
+      
+      if (filtered.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-result-empty">No perfumes found</div>';
+      } else {
+        resultsContainer.innerHTML = filtered.slice(0, 5).map(p => {
+          const img = p.images && p.images[0] ? escapeHtml(p.images[0]) : '/uploads/default.jpg';
+          return `
+            <a href="/product/${p.id}" class="search-result-item">
+              <img src="${img}" alt="${escapeHtml(p.name)}">
+              <div class="search-result-details">
+                <span class="search-result-name">${escapeHtml(p.name)}</span>
+                <span class="search-result-price">₹${escapeHtml(p.price)}</span>
+              </div>
+            </a>
+          `;
+        }).join('');
+      }
+      resultsContainer.classList.add('active');
+    }
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeSearch();
       return;
@@ -663,15 +724,13 @@ if (window.location.pathname === '/products') {
     if (e.key === 'Enter') {
       const query = searchInput.value.trim();
       if (window.location.pathname === '/products') {
-        // Already on products page - just fill the search bar
         const productsSearchBar = document.getElementById('searchBar');
         if (productsSearchBar) {
           productsSearchBar.value = query;
           productsSearchBar.dispatchEvent(new Event('input'));
         }
         closeSearch();
-      } else {
-        // Redirect to products page with query param
+      } else if (query) {
         window.location.href = `/products?search=${encodeURIComponent(query)}`;
       }
     }
@@ -690,152 +749,271 @@ if (window.location.pathname === '/products') {
         productsSearchBar.value = searchQuery;
         productsSearchBar.dispatchEvent(new Event('input'));
       };
-      // Small delay to ensure loadProducts() has run
       setTimeout(fillSearch, 300);
     }
   }
 }
 
-// MULTI-PRODUCT WHATSAPP ORDER SYSTEM
-
-
-// Initialize order from localStorage
-// let orderItems = JSON.parse(localStorage.getItem('orderItems')) || [];
-
-// // Add product to order
-// function addToOrder(id, name, size, price) {
-//   // Check if already in order
-//   const exists = orderItems.find(item => item.id === id);
-//   if (exists) {
-//     alert('This item is already in your order!');
-//     return;
-//   }
+// MULTI-PRODUCT WHATSAPP ORDER SYSTEM (Guest Cart with PostgreSQL)
+// 1. Session ID Management
+function getGuestId() {
+  const match = document.cookie.match(new RegExp('(^| )guest_id=([^;]+)'));
+  if (match) return match[2];
   
-//   // Add to order
-//   orderItems.push({ id, name, size, price });
-//   localStorage.setItem('orderItems', JSON.stringify(orderItems));
+  // Generate a random ID if none exists
+  const newId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+  document.cookie = `guest_id=${newId}; path=/; max-age=31536000`; // 1 year expiry
+  return newId;
+}
+
+// Get guest ID on load
+const guestId = getGuestId();
+let cartItems = [];
+
+// Fetch cart from database
+async function fetchCart() {
+  try {
+    const res = await fetch('/api/cart', { headers: { 'x-guest-id': guestId } });
+    cartItems = await res.json();
+    updateOrderUI();
+  } catch (err) {
+    console.error('Failed to fetch cart', err);
+  }
+}
+
+// Add product to order
+window.addToOrder = async function(productId, name, size, price, image = null) {
+  try {
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-guest-id': guestId },
+      body: JSON.stringify({ productId, name, size, price, image })
+    });
+    cartItems = await res.json();
+    updateOrderUI();
+    showOrderNotification(`${name} added to cart!`);
+  } catch (err) {
+    console.error('Failed to add to cart', err);
+    alert('Failed to add item to cart');
+  }
+};
+
+window.updateQuantity = async function(productId, quantity) {
+  if (quantity < 1) return;
+  try {
+    const res = await fetch(`/api/cart/${productId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-guest-id': guestId },
+      body: JSON.stringify({ quantity })
+    });
+    cartItems = await res.json();
+    updateOrderUI();
+    renderOrderItems();
+  } catch (err) {
+    console.error('Failed to update quantity', err);
+  }
+};
+
+// Remove item from order
+window.removeFromOrder = async function(productId) {
+  try {
+    const res = await fetch(`/api/cart/${productId}`, {
+      method: 'DELETE',
+      headers: { 'x-guest-id': guestId }
+    });
+    cartItems = await res.json();
+    updateOrderUI();
+    renderOrderItems();
+  } catch (err) {
+    console.error('Failed to remove item', err);
+  }
+};
+
+// Clear entire order
+window.clearOrder = async function() {
+  try {
+    await fetch('/api/cart', {
+      method: 'DELETE',
+      headers: { 'x-guest-id': guestId }
+    });
+    cartItems = [];
+    updateOrderUI();
+    renderOrderItems();
+  } catch (err) {
+    console.error('Failed to clear cart', err);
+  }
+};
+
+// Update UI
+function updateOrderUI() {
+  let floatBtn = document.getElementById('orderFloat');
+  if (!floatBtn) return;
   
-//   // Update UI
-//   updateOrderUI();
+  const countEl = document.getElementById('orderCount');
   
-//   // Show confirmation
-//   showOrderNotification(`${name} added to order`);
-// }
+  if (cartItems.length > 0) {
+    floatBtn.style.display = 'block';
+    const totalCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    countEl.textContent = totalCount;
+  } else {
+    floatBtn.style.display = 'none';
+    closeOrderModal();
+  }
+}
 
-// // Remove item from order
-// function removeFromOrder(id) {
-//   orderItems = orderItems.filter(item => item.id !== id);
-//   localStorage.setItem('orderItems', JSON.stringify(orderItems));
-//   updateOrderUI();
-//   renderOrderItems();
-// }
+window.showOrderModal = function() {
+  let modal = document.getElementById('orderModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    renderOrderItems();
+  }
+};
 
-// // Clear entire order
-// function clearOrder() {
-//   if (confirm('Clear all items from your order?')) {
-//     orderItems = [];
-//     localStorage.removeItem('orderItems');
-//     updateOrderUI();
-//     renderOrderItems();
-//   }
-// }
+window.closeOrderModal = function() {
+  let modal = document.getElementById('orderModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+};
 
-// // Update floating button and count
-// function updateOrderUI() {
-//   const floatBtn = document.getElementById('orderFloat');
-//   const countEl = document.getElementById('orderCount');
+// Render items in modal
+function renderOrderItems() {
+  const container = document.getElementById('orderItemsList');
+  if (!container) return;
   
-//   if (orderItems.length > 0) {
-//     floatBtn.style.display = 'block';
-//     countEl.textContent = orderItems.length;
-//   } else {
-//     floatBtn.style.display = 'none';
-//     closeOrderModal();
-//   }
-// }
-
-// // Show order modal
-// function showOrderModal() {
-//   document.getElementById('orderModal').style.display = 'flex';
-//   renderOrderItems();
-// }
-
-// // Close order modal
-// function closeOrderModal() {
-//   document.getElementById('orderModal').style.display = 'none';
-// }
-
-// // Render items in modal
-// function renderOrderItems() {
-//   const container = document.getElementById('orderItemsList');
+  if (cartItems.length === 0) {
+    container.innerHTML = '<p class="empty-order">No items in your cart yet.</p>';
+    return;
+  }
   
-//   if (orderItems.length === 0) {
-//     container.innerHTML = '<p class="empty-order">No items in your order yet.</p>';
-//     return;
-//   }
+  let total = 0;
+  container.innerHTML = cartItems.map(item => {
+    const qty = item.quantity || 1;
+    const priceStr = String(item.price).replace(/[^0-9.]/g, '');
+    const price = parseFloat(priceStr) || 0;
+    total += price * qty;
+    
+    return `
+    <div class="order-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #E0E0E0;">
+      <div style="display: flex; align-items: center; flex: 1;">
+        ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" style="width: 60px; height: 60px; object-fit: contain; margin-right: 15px; border-radius: 8px; background: #f8f8f8; border: 1px solid #eee;">` : ''}
+        <div class="order-item-info" style="display: flex; flex-direction: column; flex: 1;">
+          <strong style="font-size: 1rem; margin-bottom: 4px;">${escapeHtml(item.name)}</strong>
+          <span style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">${escapeHtml(item.size)}</span>
+          <span class="order-item-price" style="font-size: 0.95rem; color: #D4AF37; font-weight: 600;">₹${escapeHtml(item.price)}</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+          <button onclick="updateQuantity('${escapeHtml(item.productId)}', ${qty - 1})" style="width: 28px; height: 28px; background: #f5f5f5; border: none; cursor: pointer; font-size: 1.1rem; color: #333; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">−</button>
+          <span style="width: 32px; text-align: center; font-size: 0.95rem; font-weight: 500;">${qty}</span>
+          <button onclick="updateQuantity('${escapeHtml(item.productId)}', ${qty + 1})" style="width: 28px; height: 28px; background: #f5f5f5; border: none; cursor: pointer; font-size: 1.1rem; color: #333; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">+</button>
+        </div>
+        <button onclick="removeFromOrder('${escapeHtml(item.productId)}')" class="remove-item-btn" style="background: none; border: none; font-size: 0.85rem; color: #d9534f; cursor: pointer; padding: 0; text-decoration: underline;">Remove</button>
+      </div>
+    </div>
+  `;
+  }).join('');
   
-//   container.innerHTML = orderItems.map(item => `
-//     <div class="order-item">
-//       <div class="order-item-info">
-//         <strong>${item.name}</strong>
-//         <span>${item.size}</span>
-//         <span class="order-item-price">₹${item.price}</span>
-//       </div>
-//       <button onclick="removeFromOrder(${item.id})" class="remove-item-btn">&times;</button>
-//     </div>
-//   `).join('');
-// }
+  if (total > 0) {
+    container.innerHTML += `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; margin-top: 10px; border-top: 2px solid #333;">
+        <strong style="font-size: 1.1rem;">Total Estimated Price:</strong>
+        <strong style="font-size: 1.2rem; color: #D4AF37;">₹${total.toLocaleString('en-IN')}</strong>
+      </div>
+    `;
+  }
+}
 
-// // Send order to WhatsApp
-// function sendToWhatsApp() {
-//   if (orderItems.length === 0) {
-//     alert('Your order is empty!');
-//     return;
-//   }
+// Send to WhatsApp
+window.sendToWhatsApp = function() {
+  if (cartItems.length === 0) {
+    alert('Your cart is empty!');
+    return;
+  }
+  let message = 'Hi, I want to order:\n\n';
+  let total = 0;
+  cartItems.forEach((item, index) => {
+    const qty = item.quantity || 1;
+    const priceStr = String(item.price).replace(/[^0-9.]/g, '');
+    const price = parseFloat(priceStr) || 0;
+    total += price * qty;
+    message += `${index + 1}. ${item.name} (${item.size}) - Qty: ${qty}\n`;
+  });
+  if (total > 0) {
+    message += `\n*Estimated Total: ₹${total.toLocaleString('en-IN')}*\n`;
+  }
+  message += '\nPlease confirm availability.';
   
-//   // Generate message
-//   let message = 'Hi, I want to order:\n';
-//   orderItems.forEach((item, index) => {
-//     message += `${index + 1}. ${item.name} (${item.size})\n`;
-//   });
-//   message += '\nPlease confirm price and availability.';
+  // WhatsApp number
+  const whatsappNumber = '919407114022';
+  const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+};
+
+// Notification toast
+function showOrderNotification(message) {
+  let notification = document.getElementById('orderNotification');
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'orderNotification';
+    notification.className = 'order-notification';
+    document.body.appendChild(notification);
+  }
+  notification.textContent = message;
+  notification.classList.add('show');
   
-//   // WhatsApp number (change this to your actual number)
-//   const whatsappNumber = '1234567890';
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
+}
+
+// Inject UI on load
+(function injectCartUI() {
+  if (document.getElementById('orderFloat')) return; // Already injected
   
-//   // Open WhatsApp
-//   const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-//   window.open(url, '_blank');
-// }
-
-// // Show notification toast
-// function showOrderNotification(message) {
-//   const notification = document.createElement('div');
-//   notification.className = 'order-notification';
-//   notification.textContent = message;
-//   document.body.appendChild(notification);
+  // 1. Float Button
+  const floatBtn = document.createElement('div');
+  floatBtn.id = 'orderFloat';
+  floatBtn.className = 'order-float';
+  floatBtn.style.display = 'none'; // Hidden by default
+  floatBtn.innerHTML = `
+    <button class="order-btn" id="viewOrderBtn">
+      🛒 View Cart (<span id="orderCount" class="order-count">0</span>)
+    </button>
+  `;
+  document.body.appendChild(floatBtn);
   
-//   setTimeout(() => notification.classList.add('show'), 100);
-//   setTimeout(() => {
-//     notification.classList.remove('show');
-//     setTimeout(() => notification.remove(), 300);
-//   }, 2000);
-// }
-
-// // Event listener for floating button
-// document.getElementById('viewOrderBtn')?.addEventListener('click', showOrderModal);
-
-// // Initialize on page load
-// if (window.location.pathname === '/products') {
-//   updateOrderUI();
-// }
-
-// // Close modal on outside click
-// document.getElementById('orderModal')?.addEventListener('click', function(e) {
-//   if (e.target.id === 'orderModal') {
-//     closeOrderModal();
-//   }
-// });
+  // 2. Modal
+  const modal = document.createElement('div');
+  modal.id = 'orderModal';
+  modal.className = 'order-modal';
+  modal.style.display = 'none';
+  modal.innerHTML = `
+    <div class="order-modal-content">
+      <div class="order-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E0E0E0; padding-bottom: 15px; margin-bottom: 15px;">
+        <h2 style="margin: 0; font-size: 1.5rem;">Your Cart</h2>
+        <button class="close-modal" id="closeOrderModalBtn" style="background: none; border: none; font-size: 2rem; cursor: pointer; color: #333;">&times;</button>
+      </div>
+      <div class="order-items-list" id="orderItemsList" style="max-height: 50vh; overflow-y: auto; margin-bottom: 20px;"></div>
+      <div class="order-modal-footer" style="display: flex; justify-content: space-between; gap: 10px;">
+        <button class="btn btn-secondary" onclick="clearOrder()" style="flex: 1; padding: 12px; cursor: pointer;">Clear Cart</button>
+        <button class="btn btn-primary" onclick="sendToWhatsApp()" style="flex: 2; padding: 12px; font-weight: bold; cursor: pointer;">Checkout via WhatsApp</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // Events
+  document.getElementById('viewOrderBtn').addEventListener('click', showOrderModal);
+  document.getElementById('closeOrderModalBtn').addEventListener('click', closeOrderModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target.id === 'orderModal') closeOrderModal();
+  });
+  
+  // Fetch initial cart state
+  fetchCart();
+})();
 
 // Initialize AOS (Animate On Scroll)
 if (typeof AOS !== 'undefined') {

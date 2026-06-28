@@ -11,6 +11,7 @@ This document tracks the progress of upgrades to the Perfume Store. It lists bot
   * Added a dark translucent overlay to ensure text readability.
   * Upgraded typography to be larger, bolder, and feature elegant drop-shadows.
 * **Smooth Scrolling:** Implemented global smooth scrolling behavior for a better navigation experience across the site.
+* **Live Search with Previews:** Enhanced the global navigation search bar to show instant dropdown results with product thumbnail images and prices as the user types.
 
 ## 🚀 Changes Yet to be Done (Planned Features)
 
@@ -21,7 +22,6 @@ This document tracks the progress of upgrades to the Perfume Store. It lists bot
 
 **Advanced UX Features**
 * **Advanced Product Filtering:** Add filters allowing users to sort products by **Scent Profile** (Floral, Woody, Citrus, Oud), **Gender**, and **Price Range**.
-* **Live Search with Previews:** Enhance the search bar to show instant dropdown results with product thumbnail images and prices as the user types.
 * **Product Reviews & Ratings:** Add a database schema and UI for users to leave star ratings and reviews on individual perfumes to build trust.
 
 ---

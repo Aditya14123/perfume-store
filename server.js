@@ -56,7 +56,15 @@ async function initDB() {
       images JSONB NOT NULL DEFAULT '[]'
     )
   `);
-  console.log('Database table ready');
+  
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS carts (
+      session_id TEXT PRIMARY KEY,
+      items JSONB NOT NULL DEFAULT '[]',
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  console.log('Database tables ready');
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -332,6 +340,167 @@ app.post('/api/upload', requireAdmin, upload.array('images', 10), async (req, re
   }
 
   res.json({ urls: uploadedUrls });
+});
+
+// ─── Cart Routes ──────────────────────────────────────────────────────────────
+function getGuestId(req) {
+  // Check cookie or header for guest_id
+  const headerGuestId = req.headers['x-guest-id'];
+  if (headerGuestId) return headerGuestId;
+  
+  const cookieHeader = req.headers.cookie;
+  if (cookieHeader) {
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [name, ...rest] = cookie.split('=');
+      if (name) acc[name.trim()] = decodeURIComponent(rest.join('='));
+      return acc;
+    }, {});
+    if (cookies.guest_id) return cookies.guest_id;
+  }
+  return null;
+}
+
+// Memory fallback if DB is not used
+const memoryCarts = {};
+
+app.get('/api/cart', async (req, res) => {
+  const guestId = getGuestId(req);
+  if (!guestId) return res.json([]);
+  
+  try {
+    if (useDatabase) {
+      const result = await pool.query('SELECT items FROM carts WHERE session_id = $1', [guestId]);
+      if (result.rows.length > 0) {
+        return res.json(result.rows[0].items || []);
+      }
+      return res.json([]);
+    } else {
+      return res.json(memoryCarts[guestId] || []);
+    }
+  } catch (err) {
+    console.error('Failed to get cart', err);
+    res.status(500).json({ error: 'Failed to get cart' });
+  }
+});
+
+app.post('/api/cart', async (req, res) => {
+  const guestId = getGuestId(req);
+  if (!guestId) return res.status(400).json({ error: 'Missing guest_id' });
+  
+  const { productId, name, price, size, image } = req.body;
+  if (!productId) return res.status(400).json({ error: 'Missing productId' });
+  
+  try {
+    let items = [];
+    if (useDatabase) {
+      const result = await pool.query('SELECT items FROM carts WHERE session_id = $1', [guestId]);
+      if (result.rows.length > 0) {
+        items = result.rows[0].items || [];
+      }
+      
+      const existingItem = items.find(i => String(i.productId) === String(productId));
+      if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+      } else {
+        items.push({ productId: String(productId), name, price, size, image, quantity: 1 });
+      }
+      await pool.query(
+        'INSERT INTO carts (session_id, items) VALUES ($1, $2) ON CONFLICT (session_id) DO UPDATE SET items = $2, updated_at = CURRENT_TIMESTAMP',
+        [guestId, JSON.stringify(items)]
+      );
+    } else {
+      items = memoryCarts[guestId] || [];
+      const existingItem = items.find(i => String(i.productId) === String(productId));
+      if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+      } else {
+        items.push({ productId: String(productId), name, price, size, image, quantity: 1 });
+      }
+      memoryCarts[guestId] = items;
+    }
+    res.json(items);
+  } catch (err) {
+    console.error('Failed to add to cart', err);
+    res.status(500).json({ error: 'Failed to add to cart' });
+  }
+});
+
+app.put('/api/cart/:productId', async (req, res) => {
+  const guestId = getGuestId(req);
+  if (!guestId) return res.status(400).json({ error: 'Missing guest_id' });
+  
+  const { quantity } = req.body;
+  const productId = req.params.productId;
+  
+  try {
+    let items = [];
+    if (useDatabase) {
+      const result = await pool.query('SELECT items FROM carts WHERE session_id = $1', [guestId]);
+      if (result.rows.length > 0) {
+        items = result.rows[0].items || [];
+        const item = items.find(i => String(i.productId) === String(productId));
+        if (item) {
+          item.quantity = Math.max(1, parseInt(quantity) || 1);
+          await pool.query('UPDATE carts SET items = $1, updated_at = CURRENT_TIMESTAMP WHERE session_id = $2', [JSON.stringify(items), guestId]);
+        }
+      }
+    } else {
+      items = memoryCarts[guestId] || [];
+      const item = items.find(i => String(i.productId) === String(productId));
+      if (item) {
+        item.quantity = Math.max(1, parseInt(quantity) || 1);
+        memoryCarts[guestId] = items;
+      }
+    }
+    res.json(items);
+  } catch (err) {
+    console.error('Failed to update cart', err);
+    res.status(500).json({ error: 'Failed to update cart' });
+  }
+});
+
+app.delete('/api/cart/:productId', async (req, res) => {
+  const guestId = getGuestId(req);
+  if (!guestId) return res.status(400).json({ error: 'Missing guest_id' });
+  const productId = req.params.productId;
+  
+  try {
+    let items = [];
+    if (useDatabase) {
+      const result = await pool.query('SELECT items FROM carts WHERE session_id = $1', [guestId]);
+      if (result.rows.length > 0) {
+        items = result.rows[0].items || [];
+        items = items.filter(i => String(i.productId) !== String(productId));
+        await pool.query('UPDATE carts SET items = $1, updated_at = CURRENT_TIMESTAMP WHERE session_id = $2', [JSON.stringify(items), guestId]);
+      }
+    } else {
+      if (memoryCarts[guestId]) {
+        memoryCarts[guestId] = memoryCarts[guestId].filter(i => String(i.productId) !== String(productId));
+        items = memoryCarts[guestId];
+      }
+    }
+    res.json(items);
+  } catch (err) {
+    console.error('Failed to remove from cart', err);
+    res.status(500).json({ error: 'Failed to remove from cart' });
+  }
+});
+
+app.delete('/api/cart', async (req, res) => {
+  const guestId = getGuestId(req);
+  if (!guestId) return res.status(400).json({ error: 'Missing guest_id' });
+  
+  try {
+    if (useDatabase) {
+      await pool.query('DELETE FROM carts WHERE session_id = $1', [guestId]);
+    } else {
+      delete memoryCarts[guestId];
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to clear cart', err);
+    res.status(500).json({ error: 'Failed to clear cart' });
+  }
 });
 
 // ─── Page routes ──────────────────────────────────────────────────────────────
