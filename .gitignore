@@ -2,3 +2,5 @@
 node_modules/
 *.msi
 graphify-out/
+.agents/
+public/uploads/

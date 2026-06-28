@@ -195,32 +195,61 @@ document.getElementById('searchBar')?.addEventListener('input', filterProducts);
 // Configure token in deployment and keep it private.
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const token = document.getElementById('password').value;
-  if (!token) return alert('Enter admin token');
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const errorDiv = document.getElementById('loginError');
+  if (errorDiv) { errorDiv.style.display = 'none'; errorDiv.innerText = ''; }
 
- // Clear any existing session before validating new token
+  if (!username || !password) {
+    if (errorDiv) { errorDiv.style.display = 'block'; errorDiv.innerText = 'Enter username and password'; }
+    return;
+  }
+
+  // Clear any existing session before validating new credentials
   sessionStorage.removeItem('adminToken');
   document.getElementById('adminPanel').style.display = 'none';
 
-  // Use a protected route to validate the token
   try {
-    const response = await fetch('/api/auth', {
-      headers: { 'x-admin-token': token }
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
     });
 
-    if (response.status === 401) {
-      alert('Invalid admin token');
+    if (!response.ok) {
+      if (errorDiv) { errorDiv.style.display = 'block'; errorDiv.innerText = 'Invalid username or password'; }
       return;
     }
 
-    sessionStorage.setItem('adminToken', token);
+    const data = await response.json();
+    sessionStorage.setItem('adminToken', data.token);
     document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'none';
     loadAdminProducts();
   } catch (err) {
     console.error('Login error:', err);
-    alert('Failed to connect to server. Please try again.');
+    if (errorDiv) { errorDiv.style.display = 'block'; errorDiv.innerText = 'Failed to connect to server. Please try again.'; }
   }
 });
+
+// Toggle password visibility
+window.togglePassword = function() {
+  const passwordInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  } else {
+    passwordInput.type = 'password';
+    eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  }
+};
+
+// Logout admin
+window.logoutAdmin = function() {
+  sessionStorage.removeItem('adminToken');
+  window.location.reload();
+};
 
 
 // Load products in admin
@@ -589,6 +618,13 @@ if (window.location.pathname === '/products') {
   loadProducts('allProducts'); // Products page: Load and enable search/filter
 } else if (window.location.pathname.startsWith('/product/')) {
   loadProductDetail(); // Product detail page
+} else if (window.location.pathname === '/admin' || window.location.pathname === '/admin.html') {
+  const token = sessionStorage.getItem('adminToken');
+  if (token) {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadAdminProducts();
+  }
 }
 
 // ============================================

@@ -9,6 +9,7 @@ const fs = require('fs').promises;
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
+const jwt = require('jsonwebtoken');
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
@@ -17,9 +18,11 @@ const MAX_FILE_SIZE_BYTES = process.env.MAX_FILE_SIZE_BYTES
   : 5 * 1024 * 1024;
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
-if (!ADMIN_TOKEN) {
-  console.error('FATAL: ADMIN_TOKEN is not set in .env. Server cannot start without it.');
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password123';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set in .env. Server cannot start without it.');
   process.exit(1);
 }
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
@@ -70,10 +73,15 @@ async function initDB() {
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 function requireAdmin(req, res, next) {
   const token = req.header('x-admin-token');
-  if (!token || token !== ADMIN_TOKEN) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!token) return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'admin') throw new Error('Invalid role');
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
-  next();
 }
 
 // ─── Product helpers ──────────────────────────────────────────────────────────
@@ -182,6 +190,7 @@ async function deleteProduct(id) {
 
 // ─── App setup ────────────────────────────────────────────────────────────────
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet({
   contentSecurityPolicy: false // Disable CSP to avoid blocking your inline scripts
@@ -234,6 +243,16 @@ const upload = multer({
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ error: 'Invalid username or password' });
+  }
+});
+
 // Auth check
 app.get('/api/auth', requireAdmin, (req, res) => {
   res.json({ ok: true });
@@ -244,7 +263,14 @@ app.get('/api/products', async (req, res) => {
   try {
     let products = await getAllProducts();
     const token = req.header('x-admin-token');
-    if (!token || token !== ADMIN_TOKEN) {
+    let isAdmin = false;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.role === 'admin') isAdmin = true;
+      } catch (e) {}
+    }
+    if (!isAdmin) {
       // Filter out hidden products for public requests
       products = products.filter(p => p.visibility);
     }
