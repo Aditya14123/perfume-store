@@ -53,7 +53,6 @@ if (process.env.DATABASE_URL) {
 // Initialize database table
 async function initDB() {
   if (!useDatabase) return;
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id BIGINT PRIMARY KEY,
       name TEXT NOT NULL DEFAULT '',
@@ -66,6 +65,21 @@ async function initDB() {
       description TEXT NOT NULL DEFAULT '',
       images JSONB NOT NULL DEFAULT '[]'
     );
+  `);
+  
+  try {
+    await pool.query(`ALTER TABLE products ADD CONSTRAINT check_stock CHECK (stock IN ('in stock', 'out of stock'));`);
+  } catch (e) {
+    // Ignore if constraint already exists
+  }
+  
+  try {
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS price_cents INT GENERATED ALWAYS AS (NULLIF(regexp_replace(price, '\\D', '', 'g'), '')::int * 100) STORED;`);
+  } catch (e) {
+    // Ignore if column already exists or syntax error on older PG versions
+  }
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       username VARCHAR(255) UNIQUE NOT NULL,
@@ -294,11 +308,22 @@ async function deleteProduct(id) {
 
 // ─── App setup ────────────────────────────────────────────────────────────────
 const app = express();
-app.set('trust proxy', 1);
 
 app.use(helmet({
-  contentSecurityPolicy: false // Disable CSP to avoid blocking your inline scripts
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'"]
+    }
+  }
 }));
+app.set('trust proxy', 1);
+
+
 
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
