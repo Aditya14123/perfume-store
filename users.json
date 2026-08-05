@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1782654469331,
+    "username": "admin",
+    "email": "admin",
+    "password_hash": "$2b$10$hUiIGEUO/fa8MvCecMVrkOXKqma3E/3EKsn8mHkl4r4y6YcXXIasq"
+  },
+  {
+    "id": 1782654564852,
+    "username": "aditya",
+    "email": "ad.oj@gmail.com",
+    "password_hash": "$2b$10$bYUH/oErOaf6OZ5hOaUnc.M3drW4zngFcdBA8DPSXyhEkBJwIsr3C"
+  }
+]

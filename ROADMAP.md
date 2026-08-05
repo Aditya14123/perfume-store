@@ -13,12 +13,13 @@ This document tracks the progress of upgrades to the Perfume Store. It lists bot
 * **Smooth Scrolling:** Implemented global smooth scrolling behavior for a better navigation experience across the site.
 * **Live Search with Previews:** Enhanced the global navigation search bar to show instant dropdown results with product thumbnail images and prices as the user types.
 
+**Backend & Data Persistence**
+* **User Accounts & Authentication:** Implemented a secure login system so users can save their wishlists, view order history, and manage their profiles.
+* **Admin Dashboard Security:** Added secure authentication to the `/admin` route with JWT tokens so only authorized personnel can manage inventory.
 ## 🚀 Changes Yet to be Done (Planned Features)
 
 **Backend & Data Persistence (PostgreSQL Required)**
 * ~~**Database-Backed Wishlist:** Allow users to save their favorite perfumes.~~ *(Removed: Redundant with Add to Cart)*
-* **User Accounts & Authentication:** Implement a secure login system so users can save their wishlists, view order history, and manage their profiles.
-* **Admin Dashboard Security:** Add secure authentication to the `/admin` route so only authorized personnel can add, edit, or delete products and manage inventory.
 
 **Advanced UX Features**
 * **Advanced Product Filtering:** Add filters allowing users to sort products by **Scent Profile** (Floral, Woody, Citrus, Oud), **Gender**, and **Price Range**.

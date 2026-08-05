@@ -27,7 +27,15 @@
         <h3 style="margin: 0;">Manage Products</h3>
         <button class="btn btn-secondary" onclick="logoutAdmin()" style="padding: 6px 12px; font-size: 0.9rem;">Logout</button>
       </div>
-      <button class="btn mb-3" onclick="showAddForm()">Add Product</button>
+
+      <div class="admin-controls mb-3">
+        <div class="admin-tabs">
+          <button id="tab-full" class="active" onclick="switchAdminTab('full')">Full Manage</button>
+          <button id="tab-price" onclick="switchAdminTab('price')">Quick Price</button>
+        </div>
+        <input type="text" id="adminSearch" class="form-control" placeholder="Search products..." onkeyup="renderAdminProducts()" style="max-width: 300px;">
+      </div>
+      <button class="btn mb-3" id="addProductBtn" onclick="showAddForm()">Add Product</button>
       <div id="productsList"></div>
     </div>
   </div>

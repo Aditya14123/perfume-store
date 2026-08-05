@@ -18,7 +18,9 @@
       <li><a href="/delivery-payment">Delivery & Payment</a></li>
       <li><a href="/contact">Contact</a></li>
     </ul>
-    <div class="navbar-actions">
+        <div class="navbar-actions">
+      <button aria-label="User Account" title="Sign In" id="navUserAuthBtn" onclick="openAuthModal()" style="background: none; border: none; cursor: pointer; color: var(--text-dark); margin-right: 15px; display: flex; align-items: center;  "><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+
       <button class="navbar-search-toggle" id="navSearchToggle" aria-label="Search">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
@@ -57,6 +59,35 @@
       <p>&copy; 2026 Perfume Store. All rights reserved.</p>
     </div>
   </footer>
+
+<!-- Auth Modal -->
+<div id="authModal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 400px; padding: 30px;">
+    <span class="close" onclick="closeAuthModal()">&times;</span>
+    <h2 id="authModalTitle" style="margin-bottom: 20px;">Sign In</h2>
+    <div id="authError" style="color: #FF6B6B; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;"></div>
+    
+    <form id="authForm">
+      <div id="authUsernameGroup" style="display: none; margin-bottom: 15px;">
+        <input type="text" id="authUsername" placeholder="Username" class="form-control" autocomplete="username">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <input type="text" id="authEmail" placeholder="Email or Username" class="form-control" required autocomplete="email">
+      </div>
+      <div class="mb-2" style="position: relative; margin-bottom: 20px;">
+        <input type="password" id="authPassword" placeholder="Password" class="form-control" required autocomplete="current-password" style="padding-right: 40px; margin-bottom: 0;">
+        <button type="button" onclick="toggleAuthPassword()" id="authEyeBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: #666; display: flex; align-items: center; justify-content: center;">
+          <svg id="authEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
+      <button type="submit" class="btn" style="width: 100%; margin-bottom: 15px;" id="authSubmitBtn">Sign In</button>
+    </form>
+    <div style="text-align: center; font-size: 0.9rem;">
+      <span id="authToggleText">Don't have an account?</span> 
+      <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" style="color: var(--text-dark); font-weight: 600; text-decoration: underline;">Create one</a>
+    </div>
+  </div>
+</div>
 
   <script src="/script.js"></script>
 </body>

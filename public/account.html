@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account - Perfume Store</title>
+  <meta name="description" content="Manage your Perfume Store account, view profile details and your current cart.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .page-header{background:#1A1A1A;padding:60px 0 72px;text-align:center;position:relative;overflow:hidden}
+    .page-header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.018) 0px,rgba(255,255,255,.018) 1px,transparent 1px,transparent 40px)}
+    .account-avatar{width:80px;height:80px;border-radius:50%;background:#fff;color:#1A1A1A;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:2rem;font-weight:700;font-family:'Playfair Display',serif;box-shadow:0 0 0 3px rgba(255,255,255,.15);position:relative}
+    .page-header h1{color:#fff;font-family:'Playfair Display',serif;font-size:1.85rem;margin:0 0 6px;position:relative}
+    .page-header p{color:rgba(255,255,255,.45);font-size:.88rem;margin:0;position:relative}
+    .account-body{max-width:740px;margin:-32px auto 60px;padding:0 20px}
+    .acc-card{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.07);margin-bottom:18px;overflow:hidden}
+    .acc-card-header{padding:16px 22px;border-bottom:1px solid #F0EDE8;display:flex;align-items:center;gap:10px}
+    .acc-card-header .hicon{width:30px;height:30px;border-radius:7px;background:#1A1A1A;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .acc-card-header h2{font-size:.95rem;font-weight:600;margin:0;color:#1A1A1A}
+    .info-row{display:flex;align-items:center;gap:16px;padding:13px 22px;border-bottom:1px solid #F7F5F1}
+    .info-row:last-child{border-bottom:none}
+    .info-label{font-size:.76rem;color:#AAA;font-weight:600;text-transform:uppercase;letter-spacing:.07em;width:100px;flex-shrink:0}
+    .info-value{font-size:.92rem;color:#333;font-weight:500}
+    .badge-active{display:inline-block;background:#F0F7F0;color:#2E7D32;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px}
+    .action-list{list-style:none;padding:0;margin:0}
+    .action-list li a{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid #F7F5F1;text-decoration:none;color:#333;font-weight:500;font-size:.92rem;transition:background .15s}
+    .action-list li:last-child a{border-bottom:none}
+    .action-list li a:hover{background:#FAFAFA}
+    .a-icon{width:32px;height:32px;border-radius:7px;background:#F3F2EF;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .chev{margin-left:auto;color:#CCC}
+    .logout-btn{width:100%;padding:13px;background:none;border:1.5px solid #FFCDD2;border-radius:10px;color:#C62828;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif}
+    .logout-btn:hover{background:#FFF5F5;border-color:#C62828}
+    .cart-empty{text-align:center;padding:28px 22px;color:#BBB;font-size:.88rem;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .cart-item{display:flex;gap:12px;align-items:center;padding:13px 22px;border-bottom:1px solid #F7F5F1}
+    .cart-item:last-child{border-bottom:none}
+    .cart-item-img{width:50px;height:50px;object-fit:cover;border-radius:7px;background:#F3F2EF;flex-shrink:0}
+    .cart-item-name{font-weight:600;font-size:.88rem;margin-bottom:2px;color:#1A1A1A}
+    .cart-item-meta{font-size:.78rem;color:#999}
+    .cart-item-price{margin-left:auto;font-weight:600;font-size:.88rem;white-space:nowrap;color:#1A1A1A}
+    .cart-total-row{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-top:2px solid #1A1A1A;font-weight:700;font-size:.95rem}
+    .cart-footer{padding:14px 22px;display:flex;gap:10px}
+    .cta-secondary{flex:1;padding:10px;border-radius:22px;font-size:.85rem;font-weight:600;cursor:pointer;border:1.5px solid #E0E0E0;background:#fff;color:#555;text-align:center;transition:all .2s;font-family:'Inter',sans-serif}
+    .cta-secondary:hover{background:#F7F5F1}
+    .cta-primary{flex:2;padding:10px;border-radius:22px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;background:#1A1A1A;color:#fff;text-align:center;transition:all .2s;font-family:'Inter',sans-serif}
+    .cta-primary:hover{background:#333}
+    .orders-empty{text-align:center;padding:32px 22px}
+    .orders-empty .big-icon{font-size:2.2rem;margin-bottom:10px}
+    .orders-empty h3{font-size:.95rem;color:#333;margin:0 0 6px}
+    .orders-empty p{font-size:.82rem;color:#999;margin:0 0 18px;line-height:1.5}
+    #notLoggedIn{text-align:center;padding:100px 20px}
+    #notLoggedIn h2{color:#1A1A1A;margin:0 0 10px}
+    #notLoggedIn p{color:#888;margin:0 0 24px}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container navbar-container">
+    <a href="/" class="navbar-brand">Perfume Store</a>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+      <li><a href="/how-it-works">How It Works</a></li>
+      <li><a href="/delivery-payment">Delivery &amp; Payment</a></li>
+      <li><a href="/contact">Contact</a></li>
+    </ul>
+    <div class="navbar-actions">
+      <button aria-label="User Account" title="Sign In" id="navUserAuthBtn" onclick="openAuthModal()" style="background:none;border:none;cursor:pointer;color:#333;margin-right:15px;display:flex;align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+      <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<div class="navbar-overlay" id="navOverlay"></div>
+
+<div id="notLoggedIn" style="display:none;">
+  <div style="font-size:3rem;margin-bottom:16px;">&#x1F512;</div>
+  <h2>You are not signed in</h2>
+  <p>Please sign in to view your account.</p>
+  <button class="btn" onclick="openAuthModal()">Sign In</button>
+</div>
+
+<div id="accountContent" style="display:none;">
+  <div class="page-header">
+    <div class="account-avatar" id="accountAvatar">?</div>
+    <h1 id="accountName">Loading...</h1>
+    <p id="accountEmail">Loading...</p>
+  </div>
+  <div class="account-body">
+
+    <div class="acc-card">
+      <div class="acc-card-header">
+        <div class="hicon"><svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <h2>Profile</h2>
+      </div>
+      <div class="info-row"><span class="info-label">Username</span><span class="info-value" id="infoUsername">-</span></div>
+      <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="infoEmail">-</span></div>
+      <div class="info-row"><span class="info-label">Joined</span><span class="info-value" id="infoJoined">-</span></div>
+      <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge-active">&#x2713; Active</span></span></div>
+    </div>
+
+    <div class="acc-card">
+      <div class="acc-card-header">
+        <div class="hicon"><svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+        <h2>Current Cart</h2>
+      </div>
+      <div id="accountCartBody">
+        <div class="cart-empty">
+          <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Your cart is empty
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="acc-card">
+      <div class="acc-card-header">
+        <div class="hicon"><svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+        <h2>Quick Links</h2>
+      </div>
+      <ul class="action-list">
+        <li><a href="/products"><div class="a-icon"><svg width="15" height="15" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>Browse Products<svg class="chev" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></a></li>
+        <li><a href="/contact"><div class="a-icon"><svg width="15" height="15" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>Contact Us<svg class="chev" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></a></li>
+        <li><a href="/delivery-payment"><div class="a-icon"><svg width="15" height="15" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>Delivery &amp; Payment<svg class="chev" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></a></li>
+      </ul>
+    </div>
+
+    <div class="acc-card">
+      <div style="padding:18px 22px;">
+        <button class="logout-btn" onclick="doLogout()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer"><div class="container"><p>&copy; 2026 Perfume Store. All rights reserved.</p></div></footer>
+
+<div id="authModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:400px;padding:30px;">
+    <span class="close" onclick="closeAuthModal()">&times;</span>
+    <h2 id="authModalTitle" style="margin-bottom:20px;">Sign In</h2>
+    <div id="authError" style="color:#FF6B6B;font-size:.9rem;display:none;margin-bottom:15px;text-align:center;"></div>
+    <form id="authForm">
+      <div id="authUsernameGroup" style="display:none;margin-bottom:15px;"><input type="text" id="authUsername" placeholder="Username" class="form-control" autocomplete="username"></div>
+      <div style="margin-bottom:15px;"><input type="text" id="authEmail" placeholder="Email or Username" class="form-control" required autocomplete="email"></div>
+      <div style="position:relative;margin-bottom:20px;">
+        <input type="password" id="authPassword" placeholder="Password" class="form-control" required style="padding-right:40px;margin-bottom:0;">
+        <button type="button" onclick="toggleAuthPassword()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#666;display:flex;align-items:center;">
+          <svg id="authEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
+      <button type="submit" class="btn" style="width:100%;margin-bottom:15px;border-radius:8px;" id="authSubmitBtn">Sign In</button>
+    </form>
+    <div style="text-align:center;font-size:.9rem;"><span id="authToggleText">Don't have an account?</span> <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" style="color:#1A1A1A;font-weight:600;text-decoration:underline;">Create one</a></div>
+  </div>
+</div>
+
+<script src="/script.js"></script>
+<script>
+function getGuestIdLocal() {
+  var m = document.cookie.match(/(^| )guest_id=([^;]+)/);
+  return m ? m[2] : null;
+}
+
+async function loadCartSection() {
+  var gid = getGuestIdLocal();
+  var token = localStorage.getItem('userToken');
+  var body = document.getElementById('accountCartBody');
+  if (!gid && !token) return;
+  try {
+    var headers = { 'x-guest-id': gid };
+    if (token) headers['x-user-token'] = token;
+    var res = await fetch('/api/cart', { headers: headers });
+    var items = await res.json();
+    if (!items || !items.length) return;
+    var total = 0;
+    var rows = items.map(function(item) {
+      var qty = item.quantity || 1;
+      var price = parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+      total += price * qty;
+      var imgHtml = item.image
+        ? '<img class="cart-item-img" src="' + item.image + '" alt="">'
+        : '<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem;">&#x1F9F4;</div>';
+      return '<div class="cart-item">' + imgHtml
+        + '<div style="min-width:0;flex:1"><div class="cart-item-name">' + item.name + '</div>'
+        + '<div class="cart-item-meta">' + item.size + ' &middot; Qty: ' + qty + '</div></div>'
+        + '<div class="cart-item-price">' + (price > 0 ? '&#8377;' + (price * qty).toLocaleString('en-IN') : '-') + '</div></div>';
+    }).join('');
+    var totalRow = total > 0
+      ? '<div class="cart-total-row"><span>Estimated Total</span><span>&#8377;' + total.toLocaleString('en-IN') + '</span></div>'
+      : '';
+    var footer = '<div class="cart-footer">'
+      + '<button class="cta-secondary" id="clearCartBtn">Clear Cart</button>'
+      + '<button class="cta-primary" id="whatsappBtn">Checkout via WhatsApp</button>'
+      + '</div>';
+    body.innerHTML = rows + totalRow + footer;
+
+    document.getElementById('clearCartBtn').onclick = async function() {
+      var gid2 = getGuestIdLocal();
+      if (!gid2) return;
+      await fetch('/api/cart', { method: 'DELETE', headers: headers });
+      body.innerHTML = '<div class="cart-empty"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line></svg>Your cart is empty</div>';
+    };
+
+    document.getElementById('whatsappBtn').onclick = function() {
+      if (!items.length) { alert('Cart is empty!'); return; }
+      var msg = 'Hi, I want to order:\n\n';
+      var t = 0;
+      items.forEach(function(item, i) {
+        var qty = item.quantity || 1;
+        var price = parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0;
+        t += price * qty;
+        msg += (i + 1) + '. ' + item.name + ' (' + item.size + ') - Qty: ' + qty + '\n';
+      });
+      if (t > 0) msg += '\n*Estimated Total: \u20b9' + t.toLocaleString('en-IN') + '*\n';
+      msg += '\nPlease confirm availability.';
+      window.open('https://wa.me/919407114022?text=' + encodeURIComponent(msg), '_blank');
+    };
+  } catch(e) { console.error('Cart load error', e); }
+}
+
+(async function init() {
+  var token = localStorage.getItem('userToken');
+  if (!token) { document.getElementById('notLoggedIn').style.display = 'block'; return; }
+  try {
+    var res = await fetch('/api/auth/me', { headers: { 'x-user-token': token } });
+    if (!res.ok) {
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userName');
+      document.getElementById('notLoggedIn').style.display = 'block';
+      return;
+    }
+    var user = await res.json();
+    document.getElementById('accountContent').style.display = 'block';
+    document.getElementById('accountAvatar').textContent = (user.username || '?')[0].toUpperCase();
+    document.getElementById('accountName').textContent = user.username;
+    document.getElementById('accountEmail').textContent = user.email;
+    document.getElementById('infoUsername').textContent = user.username;
+    document.getElementById('infoEmail').textContent = user.email;
+    var joined = user.created_at
+      ? new Date(user.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })
+      : 'Today';
+    document.getElementById('infoJoined').textContent = joined;
+    loadCartSection();
+  } catch(e) { document.getElementById('notLoggedIn').style.display = 'block'; }
+})();
+
+function doLogout() {
+  localStorage.removeItem('userToken');
+  localStorage.removeItem('userName');
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>
