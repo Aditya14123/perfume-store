@@ -56,10 +56,10 @@ function renderProducts(containerId, products) {
 
     // Safe JSON-encoded values for the onclick handler
     const safeId = Number(p.id);
-    const safeName = name.replace(/'/g, "\\'");
-    const safeSize = size.replace(/'/g, "\\'");
-    const safePrice = price.replace(/'/g, "\\'");
-    const safeImg = img.replace(/'/g, "\\'");
+    const safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const safeSize = (p.size || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const safePrice = (p.price || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const safeImg = ((p.images && p.images[0]) || '/uploads/default.jpg').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
     const cartBtn = isOutOfStock
       ? `<button class="card-cart-btn" disabled>Out of Stock</button>`
