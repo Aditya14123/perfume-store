@@ -53,6 +53,7 @@ if (process.env.DATABASE_URL) {
 // Initialize database table
 async function initDB() {
   if (!useDatabase) return;
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id BIGINT PRIMARY KEY,
       name TEXT NOT NULL DEFAULT '',
