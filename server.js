@@ -329,13 +329,13 @@ app.set('trust proxy', 1);
 
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,
+  max: 10000, // Increased limit so demo/testing will never get blocked
   message: { error: 'Too many requests, please try again later.' }
 }));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 1000,
   message: { error: 'Too many authentication attempts, please try again later.' }
 });
 
@@ -621,6 +621,8 @@ app.post('/api/upload', requireAdmin, upload.array('images', 10), async (req, re
     // Use the hash as the new filename for O(1) deduplication
     const newFilename = `${hash}${ext}`;
     const prodDir = path.join(__dirname, 'public', 'uploads', 'products', productId);
+    await fs.mkdir(prodDir, { recursive: true });
+
     const targetPath = path.join(prodDir, newFilename);
     const publicUrl = `/uploads/products/${productId}/${newFilename}`;
 
@@ -628,7 +630,12 @@ app.post('/api/upload', requireAdmin, upload.array('images', 10), async (req, re
       try {
         await fs.rename(absolutePath, targetPath);
       } catch (err) {
-        console.error('Rename failed:', err);
+        try {
+          await fs.copyFile(absolutePath, targetPath);
+          await fs.unlink(absolutePath);
+        } catch (copyErr) {
+          console.error('File copy/unlink failed:', copyErr);
+        }
       }
     }
 

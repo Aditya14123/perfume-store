@@ -7,6 +7,90 @@
   <title>Products - Middle Eastern Perfumes & Attar</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .custom-dropdown {
+      position: relative;
+      width: 100%;
+      user-select: none;
+    }
+    .custom-dropdown-header {
+      background: #1A1A1A;
+      color: #FFF;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #333;
+      transition: all 0.2s;
+    }
+    .custom-dropdown-header:hover {
+      background: #2A2A2A;
+    }
+    .custom-dropdown-header svg {
+      width: 16px; height: 16px;
+      transition: transform 0.2s;
+    }
+    .custom-dropdown.open .custom-dropdown-header svg {
+      transform: rotate(180deg);
+    }
+    .custom-dropdown-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: #1A1A1A;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 6px 0;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .custom-dropdown.open .custom-dropdown-list {
+      display: block;
+    }
+    .custom-dropdown-option {
+      padding: 8px 16px;
+      color: #CCC;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .custom-dropdown-option:hover {
+      background: #2A2A2A;
+      color: #FFF;
+    }
+    .custom-dropdown-option.selected {
+      color: #FFF;
+      font-weight: 600;
+    }
+    .custom-dropdown-option.selected::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #FFF;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .custom-dropdown-option:not(.selected)::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: transparent;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .in-stock-label {
+      display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; user-select: none; color: #FFF; background: #1A1A1A; border: 1px solid #333; padding: 10px 16px; border-radius: 8px; transition: all 0.2s; height: 100%;
+    }
+    .in-stock-label:hover {
+      background: #2A2A2A;
+    }
+  </style>
 </head>
 
 
@@ -61,25 +145,88 @@
     <div class="container">
       <h1>Our Products</h1>
       <input type="text" id="searchBar" placeholder="Search by name..." class="search-bar">
-      <div class="category-tabs">
-        <button class="tab-btn active" data-category="all">All</button>
-        <button class="tab-btn" data-category="Middle Eastern Perfumes">Middle Eastern Perfumes</button>
-        <button class="tab-btn" data-category="Indian Perfumes">Indian Perfumes</button>
-        <button class="tab-btn" data-category="Attars">Attars</button>
-        <button class="tab-btn" data-category="Deodorants">Deodorants</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <div class="category-tabs" style="margin-bottom: 0;">
+          <button class="tab-btn active" data-category="all">All</button>
+          <button class="tab-btn" data-category="Middle Eastern Perfumes">Middle Eastern Perfumes</button>
+          <button class="tab-btn" data-category="Indian Perfumes">Indian Perfumes</button>
+          <button class="tab-btn" data-category="Attars">Attars</button>
+          <button class="tab-btn" data-category="Deodorants">Deodorants</button>
+        </div>
+        <button id="filterToggleBtn" style="background: #fff; color: #1A1A1A; border: 1.5px solid #1A1A1A; display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+          Filters & Sort
+        </button>
       </div>
 
-      <div class="filter-bar" style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center; flex-wrap: wrap;">
-        <select id="sortPrice" style="width: auto; margin: 0; padding: 10px 20px; border-radius: 30px; font-weight: 500; border: none; background: #1A1A1A; color: #FFF; cursor: pointer; font-family: inherit; font-size: 0.95rem; outline: none; appearance: auto;">
-          <option value="default">Sort by: Featured</option>
-          <option value="bestselling">Best Selling</option>
-          <option value="low">Price: Low to High</option>
-          <option value="high">Price: High to Low</option>
-        </select>
+      <div id="filterPanel" style="display: none; background: #FAFAFA; padding: 24px; border-radius: 12px; border: 1px solid #EAEAEA; margin-bottom: 25px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+          
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Gender</label>
+            <div class="custom-dropdown" id="dropdownGender" data-value="all">
+              <div class="custom-dropdown-header">
+                <span>All</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="custom-dropdown-list">
+                <div class="custom-dropdown-option selected" data-value="all">All</div>
+                <div class="custom-dropdown-option" data-value="Men">Men</div>
+                <div class="custom-dropdown-option" data-value="Women">Women</div>
+                <div class="custom-dropdown-option" data-value="Unisex">Unisex</div>
+              </div>
+            </div>
+          </div>
 
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; font-size: 0.95rem; user-select: none; color: #1A1A1A; background: #EAEAEA; padding: 8px 16px; border-radius: 30px;">
-          <input type="checkbox" id="inStockOnly" style="width: 16px; height: 16px; cursor: pointer; accent-color: #1A1A1A; margin: 0;"> In Stock Only
-        </label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Price Range</label>
+            <div class="custom-dropdown" id="dropdownPrice" data-value="all">
+              <div class="custom-dropdown-header">
+                <span>All Prices</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="custom-dropdown-list">
+                <div class="custom-dropdown-option selected" data-value="all">All Prices</div>
+                <div class="custom-dropdown-option" data-value="under_1000">Under ₹1,000</div>
+                <div class="custom-dropdown-option" data-value="1000_2000">₹1,000 - ₹2,000</div>
+                <div class="custom-dropdown-option" data-value="2000_3000">₹2,000 - ₹3,000</div>
+                <div class="custom-dropdown-option" data-value="3000_5000">₹3,000 - ₹5,000</div>
+                <div class="custom-dropdown-option" data-value="over_5000">Over ₹5,000</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Sort By</label>
+            <div class="custom-dropdown" id="dropdownSort" data-value="default">
+              <div class="custom-dropdown-header">
+                <span>Featured</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="custom-dropdown-list">
+                <div class="custom-dropdown-option selected" data-value="default">Featured</div>
+                <div class="custom-dropdown-option" data-value="bestselling">Best Selling</div>
+                <div class="custom-dropdown-option" data-value="low">Price: Low to High</div>
+                <div class="custom-dropdown-option" data-value="high">Price: High to Low</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Availability</label>
+            <div class="custom-dropdown" id="dropdownAvailability" data-value="all">
+              <div class="custom-dropdown-header">
+                <span>All Items</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="custom-dropdown-list">
+                <div class="custom-dropdown-option selected" data-value="all">All Items</div>
+                <div class="custom-dropdown-option" data-value="instock">In Stock Only</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
       <div id="allProducts" class="product-grid"></div>
       <p class="disclaimer">Prices may vary due to stock and import rates. Final price is always confirmed on WhatsApp.
@@ -87,9 +234,58 @@
     </div>
   </section>
 
-  <footer class="footer">
+    <footer class="fat-footer">
     <div class="container">
-      <p>&copy; 2026 Perfume Store. All rights reserved.</p>
+      <div class="fat-footer-grid">
+        <!-- Column 1: Useful Links -->
+        <div>
+          <h4>Useful Links</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Terms & Conditions</a></li>
+            <li><a href="#">Return Policy</a></li>
+            <li><a href="#">Shipping Policy</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+            <li><a href="#">FAQ's</a></li>
+          </ul>
+        </div>
+        <!-- Column 2: My Account -->
+        <div>
+          <h4>My Account</h4>
+          <ul>
+            <li><a href="/account">Login / Profile</a></li>
+            <li><a class="nav-create-account" href="/account">Create an Account</a></li>
+          </ul>
+        </div>
+        <!-- Column 3: Get in Touch -->
+        <div>
+          <h4>Get in touch</h4>
+          <p>+91 98765 43210</p>
+          <p>support@perfumestore.com</p>
+        </div>
+        <!-- Column 4: Newsletter -->
+        <div>
+          <h4>Get latest offers and News</h4>
+          <form class="newsletter-form" onsubmit="handleNewsletterSubmit(event)">
+            <input type="email" placeholder="Enter email here" required autocomplete="email">
+            <button type="submit" aria-label="Subscribe">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </form>
+          <div id="newsletter-msg" style="display:none; font-size: 0.85rem; margin-top: -15px; margin-bottom: 20px;"></div>
+          <p>Apply for our free membership to receive exclusive deals, news, and events.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Perfume Store. All rights reserved.</p>
+        <div class="payment-icons">
+          <!-- Placeholder SVGs for payment gateways -->
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4A2 2 0 0 0 2 6v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM4 6h16v2H4V6zm0 12v-6h16v6H4z"/></svg>
+        </div>
+      </div>
     </div>
   </footer>
 

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Reviews - Perfume Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body style="background: #F9F9F9; font-family: 'Inter', sans-serif;">
+<nav class="navbar">
+  <div class="container navbar-container">
+    <a href="/" class="navbar-brand">Perfume Store</a>
+    <ul class="navbar-nav" id="navMenu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+    </ul>
+    <div class="navbar-actions">
+      <a href="/" class="btn" style="padding: 8px 16px;">Back to Store</a>
+    </div>
+  </div>
+</nav>
+
+<section style="padding: 45px 0 70px 0; min-height: 80vh;">
+  <div class="container">
+    <a href="/" class="back-link">&larr; Back to Home</a>
+    <div style="text-align: center; margin-bottom: 45px;">
+      <h1 style="font-family: 'Playfair Display', serif; font-size: 2.8rem; color: #1A1A1A; margin-bottom: 12px; font-weight: 700;">Customer Reviews</h1>
+      <p style="color: #666; font-size: 1.05rem; max-width: 600px; margin: 0 auto; line-height: 1.6;">See what our customers are saying about our premium collection of Middle Eastern Perfumes and Attars.</p>
+    </div>
+
+    <div id="allReviewsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px;">
+      <!-- Reviews populated here -->
+    </div>
+  </div>
+</section>
+
+<script>
+  async function fetchAllReviews() {
+    const grid = document.getElementById('allReviewsGrid');
+    try {
+      const response = await fetch('/api/store-reviews');
+      if (!response.ok) throw new Error('Failed to fetch reviews');
+      const reviews = await response.json();
+      
+      if (reviews.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #888; font-size: 1.2rem; padding: 40px;">No reviews yet. Check back soon!</p>';
+        return;
+      }
+
+      grid.innerHTML = reviews.map(r => `
+        <div style="background: #1A1A1A; color: #FFF; padding: 30px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div>
+            <div style="display: flex; gap: 4px; color: #FFD700; margin-bottom: 15px; font-size: 1.2rem;">
+              ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
+            </div>
+            <p style="color: #FFFFFF; font-size: 1.05rem; line-height: 1.6; margin-bottom: 25px; font-style: italic;">&ldquo;${r.content || r.comment || ''}&rdquo;</p>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #333; padding-top: 16px;">
+            <p style="color: #AAAAAA; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">&mdash; ${r.author_name || r.reviewer_name || 'Anonymous'}</p>
+            <small style="color: #888;">${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</small>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      grid.innerHTML = '<p style="color: #FF6B6B; text-align: center; grid-column: 1 / -1;">Error loading reviews.</p>';
+    }
+  }
+
+  fetchAllReviews();
+</script>
+</body>
+</html>

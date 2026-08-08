@@ -1,3 +1,66 @@
+
+// ─── Constants & Utilities ──────────────────────────────────────────────────
+const STORE_CONSTANTS = {
+  CATEGORIES: {
+    MIDDLE_EASTERN: 'Middle Eastern Perfumes',
+    INDIAN: 'Indian Perfumes',
+    ATTARS: 'Attars',
+    DEODORANTS: 'Deodorants'
+  },
+  GENDERS: {
+    MEN: 'Men',
+    WOMEN: 'Women',
+    UNISEX: 'Unisex'
+  },
+  STOCK: {
+    IN_STOCK: 'in stock',
+    OUT_OF_STOCK: 'out of stock'
+  }
+};
+
+/**
+ * Universal API request wrapper that auto-injects admin tokens and handles errors
+ */
+async function apiRequest(url, options = {}) {
+  const adminToken = sessionStorage.getItem('adminToken');
+  const headers = { ...options.headers };
+  if (adminToken) {
+    headers['x-admin-token'] = adminToken;
+  }
+  if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  const response = await fetch(url, { ...options, headers });
+  
+  if (!response.ok) {
+    let errText = 'API Error';
+    try {
+      const errData = await response.json();
+      errText = errData.error || errText;
+    } catch(e) {
+      errText = await response.text();
+    }
+    throw new Error(errText);
+  }
+  
+  try {
+    return await response.json();
+  } catch(e) {
+    return { success: true };
+  }
+}
+
+/**
+ * Price parsing helper
+ */
+function getNumericPrice(priceStr) {
+  if (!priceStr) return 0;
+  const parsed = parseFloat(String(priceStr).replace(/[^\d.]/g, ''));
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+
 let allProducts = []; // Store all products for search
 let currentCategory = 'all'; // For category filtering
 const STORE_WHATSAPP_NUMBER = '919407114022'; // Centralized WhatsApp number
@@ -50,7 +113,7 @@ function renderProducts(containerId, products) {
     const size = escapeHtml(p.size || '');
     const price = escapeHtml(p.price || '');
     const stock = escapeHtml(p.stock || '');
-    const img = escapeHtml((p.images && p.images[0]) || '/uploads/default.jpg');
+    const img = escapeHtml((p.images && p.images[0]) || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNGNUYwRUIiLz48dGV4dCB4PSIyMDAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjQ0NCOEE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5mDPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iMjQwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTg4NzciIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBlcmZ1bWUgSW1hZ2U8L3RleHQ+PC9zdmc+');
     const stockClass = p.stock === 'out of stock' ? 'out-of-stock' : '';
     const isOutOfStock = p.stock === 'out of stock';
 
@@ -120,31 +183,58 @@ async function loadProductDetail() {
     container.innerHTML = `
       <div class="detail-container">
         <div class="image-gallery">
-          <div class="main-image-container">
+          <div class="main-image-container" style="background: #FAF9F6; border-radius: 16px; border: 1px solid #EAE6DF; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
             ${images.length > 1 ? '<button class="gallery-btn" id="prevImage">‹</button>' : ''}
-            <img id="mainImage" src="${escapeHtml(images[0] || '/uploads/default.jpg')}" alt="${escapeHtml(String(product.name || ''))}">
-
+            <img id="mainImage" src="${escapeHtml(images[0] || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNGNUYwRUIiLz48dGV4dCB4PSIyMDAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjQ0NCOEE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5mDPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iMjQwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTg4NzciIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBlcmZ1bWUgSW1hZ2U8L3RleHQ+PC9zdmc+')}" alt="${escapeHtml(String(product.name || ''))}">
             ${images.length > 1 ? '<button class="gallery-btn" id="nextImage">›</button>' : ''}
-
           </div>
-            ${images.length > 1 ? `<div class="gallery-thumbs">${images.map((img, idx) => `<img src="${escapeHtml(img)}" onclick="changeImage(${idx})" class="${idx === 0 ? 'active' : ''}" alt="Thumbnail ${idx + 1}">`).join('')}</div>` : ''}
-
-
+          ${images.length > 1 ? `<div class="gallery-thumbs">${images.map((img, idx) => `<img src="${escapeHtml(img)}" onclick="changeImage(${idx})" class="${idx === 0 ? 'active' : ''}" alt="Thumbnail ${idx + 1}">`).join('')}</div>` : ''}
         </div>
+
         <div class="detail-info">
-          <h1>${escapeHtml(product.name || '')}</h1>
-          <p><strong>Size:</strong> ${escapeHtml(product.size || '')}</p>
-          <p class="price"><strong>Price:</strong> ₹${escapeHtml(product.price || '')} (Approx – confirm on WhatsApp)</p>
-          <p class="stock ${stockLabel === 'out of stock' ? 'out-of-stock' : ''}"><strong>Stock:</strong> ${escapeHtml(stockLabel)}</p>
-          <p>${escapeHtml(product.description || '')}</p>
+          <h1 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #1A1A1A; margin-bottom: 14px; font-weight: 700; line-height: 1.25;">${escapeHtml(product.name || '')}</h1>
 
-
-          <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button onclick="addToOrder('${product.id}', '${escapeHtml((product.name || '').replace(/'/g, "\\'"))}', '${escapeHtml(product.size)}', '${escapeHtml(product.price)}', '${escapeHtml(images[0] || '')}')" class="btn btn-secondary" ${stockLabel === 'out of stock' ? 'disabled' : ''} style="flex: 1; cursor: pointer; font-weight: 600;">Add to Cart</button>
-            <a href="https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I'm interested in " + (product.name || "") + " (" + (product.size || "") + ")!")}" class="btn btn-primary" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5; flex: 1;"' : 'style="flex: 1;"'}>Buy Now</a>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px;">
+            <span style="background: #F4F1EA; color: #555; padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid #E5DFD5;">${escapeHtml(product.size || '')}</span>
+            <span style="background: #F4F1EA; color: #555; padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid #E5DFD5;">${escapeHtml(product.gender || 'Unisex')}</span>
+            <span style="background: #F4F1EA; color: #555; padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid #E5DFD5;">${escapeHtml(product.category || 'Middle Eastern Perfumes')}</span>
+            <span style="padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; ${stockLabel === 'out of stock' ? 'background: #FFEBEB; color: #D9534F; border: 1px solid #FFC9C9;' : 'background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9;'}">
+              ${stockLabel === 'out of stock' ? '🔴 Out of Stock' : '🟢 In Stock'}
+            </span>
           </div>
 
+          <div style="margin-bottom: 18px; display: flex; align-items: baseline; gap: 8px;">
+            <span style="font-size: 1.8rem; font-weight: 700; color: #1A1A1A; font-family: 'Inter', sans-serif;">₹${escapeHtml(product.price || '')}</span>
+            <span style="font-size: 0.85rem; color: #777;">(Approx – confirm on WhatsApp)</span>
+          </div>
 
+          <p style="color: #444; line-height: 1.65; font-size: 0.98rem; margin-bottom: 24px;">${escapeHtml(product.description || '')}</p>
+
+          <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <button onclick="addToOrder('${product.id}', '${escapeHtml((product.name || '').replace(/'/g, "\\'"))}', '${escapeHtml(product.size)}', '${escapeHtml(product.price)}', '${escapeHtml(images[0] || '')}')" class="btn btn-secondary" ${stockLabel === 'out of stock' ? 'disabled' : ''} style="flex: 1; cursor: pointer; font-weight: 600; padding: 14px; border-radius: 30px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; transition: all 0.2s;">Add to Cart</button>
+            <a href="https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I'm interested in " + (product.name || "") + " (" + (product.size || "") + ")!")}" class="btn btn-primary" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5; flex: 1; padding: 14px; border-radius: 30px;"' : 'style="flex: 1; padding: 14px; border-radius: 30px; background: #1A1A1A; color: #FFF; font-weight: 600; text-align: center; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15);"'}>Buy Now</a>
+          </div>
+
+          <div style="margin-top: 28px; padding: 20px; background: #FAF9F6; border: 1px solid #EAE6DF; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #333;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(212, 175, 55, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="18" height="18" fill="none" stroke="#D4AF37" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span><strong>100% Authentic Product:</strong> Direct from authorized brand distributors</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #333;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(212, 175, 55, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="18" height="18" fill="none" stroke="#D4AF37" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              </div>
+              <span><strong>Fast Dispatch:</strong> Dispatched within 24–48 hours across India</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #333;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(37, 211, 102, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="18" height="18" fill="none" stroke="#25D366" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              </div>
+              <span><strong>WhatsApp Support:</strong> Real-time fragrance assistance & order tracking</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -179,7 +269,8 @@ function changeImage(idx) {
   if (!images[idx]) return;
 
   window.currentImageIndex = idx;
-  document.getElementById('mainImage').src = images[idx];
+  const mainImg = document.getElementById('mainImage');
+  if (mainImg) mainImg.src = images[idx];
   updateThumbnailActive(idx);
 }
 
@@ -193,33 +284,60 @@ function updateThumbnailActive(idx) {
 // Search and filter functionality
 function filterProducts() {
   const query = document.getElementById('searchBar')?.value.toLowerCase() || '';
-  const sortPrice = document.getElementById('sortPrice')?.value || 'default';
-  const inStockOnly = document.getElementById('inStockOnly')?.checked || false;
+
+  // Get values from custom dropdowns
+  const genderFilter = document.getElementById('dropdownGender')?.dataset.value || 'all';
+  const priceRangeFilter = document.getElementById('dropdownPrice')?.dataset.value || 'all';
+  const sortFilter = document.getElementById('dropdownSort')?.dataset.value || 'default';
+  const availabilityFilter = document.getElementById('dropdownAvailability')?.dataset.value || 'all';
 
   let filtered = allProducts.filter(p =>
-    (currentCategory === 'all' || p.category.toLowerCase() === currentCategory.toLowerCase()) &&
+    (currentCategory === 'all' || (p.category && p.category.toLowerCase() === currentCategory.toLowerCase())) &&
     p.name.toLowerCase().includes(query)
   );
 
-  if (inStockOnly) {
+  // Gender filter
+  if (genderFilter !== 'all') {
+    filtered = filtered.filter(p => p.gender && p.gender.toLowerCase() === genderFilter.toLowerCase());
+  }
+
+  // Price range filter
+  if (priceRangeFilter !== 'all') {
+    filtered = filtered.filter(p => {
+      const price = parseFloat(String(p.price).replace(/[^\d.]/g, '')) || 0;
+      switch (priceRangeFilter) {
+        case 'under_1000': return price < 1000;
+        case '1000_2000': return price >= 1000 && price <= 2000;
+        case '2000_3000': return price >= 2000 && price <= 3000;
+        case '3000_5000': return price >= 3000 && price <= 5000;
+        case 'over_5000': return price > 5000;
+        default: return true;
+      }
+    });
+  }
+
+  // Availability filter
+  if (availabilityFilter === 'instock') {
     filtered = filtered.filter(p => p.stock === 'in stock');
   }
 
-  if (sortPrice === 'low') {
+  // Sort filter
+  if (sortFilter === 'low') {
     filtered.sort((a, b) => {
-      const priceA = parseFloat(a.price.replace(/[^\d.]/g, '')) || 0;
-      const priceB = parseFloat(b.price.replace(/[^\d.]/g, '')) || 0;
+      const priceA = parseFloat(String(a.price).replace(/[^\d.]/g, '')) || 0;
+      const priceB = parseFloat(String(b.price).replace(/[^\d.]/g, '')) || 0;
       return priceA - priceB;
     });
-  } else if (sortPrice === 'high') {
+  } else if (sortFilter === 'high') {
     filtered.sort((a, b) => {
-      const priceA = parseFloat(a.price.replace(/[^\d.]/g, '')) || 0;
-      const priceB = parseFloat(b.price.replace(/[^\d.]/g, '')) || 0;
+      const priceA = parseFloat(String(a.price).replace(/[^\d.]/g, '')) || 0;
+      const priceB = parseFloat(String(b.price).replace(/[^\d.]/g, '')) || 0;
       return priceB - priceA;
     });
-  } else if (sortPrice === 'bestselling') {
+  } else if (sortFilter === 'bestselling') {
     filtered = filtered.filter(p => p.is_bestseller === true);
   }
+  // 'default' keeps original order
 
   renderProducts('allProducts', filtered);
 }
@@ -234,14 +352,55 @@ document.querySelectorAll('.tab-btn')?.forEach(btn => {
   });
 });
 
-// Search bar and Filters
+// Custom Dropdown Handlers for Filter Panel
+document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+  const header = dropdown.querySelector('.custom-dropdown-header');
+  const options = dropdown.querySelectorAll('.custom-dropdown-option');
+
+  // Toggle dropdown on header click
+  header?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.custom-dropdown').forEach(d => {
+      if (d !== dropdown) d.classList.remove('open');
+    });
+    dropdown.classList.toggle('open');
+  });
+
+  // Handle option selection
+  options.forEach(option => {
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const value = option.dataset.value;
+      dropdown.dataset.value = value;
+      dropdown.querySelector('.custom-dropdown-header span').textContent = option.textContent.trim();
+      dropdown.querySelectorAll('.custom-dropdown-option').forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      dropdown.classList.remove('open');
+      filterProducts();
+    });
+  });
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', () => {
+  document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('open'));
+});
+
+// Filter Panel Toggle
+document.getElementById('filterToggleBtn')?.addEventListener('click', () => {
+  const panel = document.getElementById('filterPanel');
+  if (panel) {
+    const isHidden = panel.style.display === 'none' || panel.style.display === '';
+    panel.style.display = isHidden ? 'block' : 'none';
+  }
+});
+
+// Search bar
 let filterTimeout = null;
 document.getElementById('searchBar')?.addEventListener('input', () => {
   clearTimeout(filterTimeout);
   filterTimeout = setTimeout(filterProducts, 300);
 });
-document.getElementById('sortPrice')?.addEventListener('change', filterProducts);
-document.getElementById('inStockOnly')?.addEventListener('change', filterProducts);
 
 // Admin login
 // New: server-side auth uses X-Admin-Token header.
@@ -277,7 +436,8 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const data = await response.json();
     sessionStorage.setItem('adminToken', data.token);
     document.getElementById('adminPanel').style.display = 'block';
-    document.getElementById('loginForm').style.display = 'none';
+    const lc1 = document.getElementById('loginContainer');
+    if (lc1) lc1.style.display = 'none';
     loadAdminProducts();
   } catch (err) {
     console.error('Login error:', err);
@@ -414,6 +574,15 @@ window.renderAdminProducts = function () {
           </select>
           <small class="helper-text">Product category</small>
         </div>
+
+        <div>
+          <select id="gender-${p.id}">
+            <option value="Unisex" ${(p.gender || 'Unisex') === 'Unisex' ? 'selected' : ''}>Unisex</option>
+            <option value="Men" ${p.gender === 'Men' ? 'selected' : ''}>Men</option>
+            <option value="Women" ${p.gender === 'Women' ? 'selected' : ''}>Women</option>
+          </select>
+          <small class="helper-text">Gender</small>
+        </div>
         
         <div style="grid-column: 1 / -1;">
           <textarea id="description-${p.id}" placeholder="Description">${description}</textarea>
@@ -422,7 +591,7 @@ window.renderAdminProducts = function () {
         
         <div id="images-${p.id}" class="images-list">${images.map((img) => {
       const safeImg = escapeHtml(img || '');
-      return `<div><input type="text" value="${safeImg}"><button onclick="this.parentNode.remove()">Remove</button></div>`;
+      return `<div><input type="text" value="${safeImg}" oninput="markDirty(${p.id})"><button type="button" onclick="removeImage(this, ${p.id})">Remove</button></div>`;
     }).join('')}</div>
         
         <div style="grid-column: 1 / -1;">
@@ -437,6 +606,14 @@ window.renderAdminProducts = function () {
       </div>
     `;
   }).join('');
+};
+
+window.removeImage = function(btn, id) {
+  if (btn) {
+    const parent = btn.closest('div');
+    if (parent) parent.remove();
+    markDirty(id);
+  }
 };
 
 
@@ -464,6 +641,7 @@ async function updateProduct(id) {
     const visibility = document.getElementById(`visibility-${id}`).checked;
     const is_bestseller = document.getElementById(`bestseller-${id}`).checked;
     const category = document.getElementById(`category-${id}`).value;
+    const gender = document.getElementById(`gender-${id}`).value;
     const description = document.getElementById(`description-${id}`).value;
     const images = Array.from(document.querySelectorAll(`#images-${id} input`)).map(input => input.value.trim()).filter(Boolean);
     const adminToken = sessionStorage.getItem('adminToken');
@@ -473,7 +651,7 @@ async function updateProduct(id) {
         'Content-Type': 'application/json',
         ...(adminToken ? { 'x-admin-token': adminToken } : {})
       },
-      body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, category, description, images })
+      body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, category, gender, description, images })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -560,13 +738,20 @@ async function uploadImage(id) {
         const input = document.createElement('input');
         input.type = 'text';
         input.value = url;
+        input.addEventListener('input', () => markDirty(id));
         const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
         removeBtn.textContent = 'Remove';
-        removeBtn.addEventListener('click', () => newInput.remove());
+        removeBtn.addEventListener('click', () => {
+          newInput.remove();
+          markDirty(id);
+        });
         newInput.appendChild(input);
         newInput.appendChild(removeBtn);
         imagesDiv.appendChild(newInput);
       });
+      fileInput.value = '';
+      markDirty(id);
     } else {
       alert('Upload failed');
     }
@@ -583,23 +768,24 @@ function addImage(id) {
   const imagesDiv = document.getElementById(`images-${id}`);
   const newInput = document.createElement('div');
 
-  // Avoid innerHTML to reduce accidental HTML injection + Enter-key weirdness
   const input = document.createElement('input');
   input.type = 'text';
   input.value = url;
+  input.addEventListener('input', () => markDirty(id));
 
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.textContent = 'Remove';
   btn.style.marginLeft = '8px';
   btn.addEventListener('click', () => {
-    // Remove the correct element (no relying on index that can shift)
     newInput.remove();
+    markDirty(id);
   });
 
   newInput.appendChild(input);
   newInput.appendChild(btn);
   imagesDiv.appendChild(newInput);
+  markDirty(id);
 }
 
 // Legacy removeImage function removed
@@ -657,6 +843,14 @@ function showAddForm() {
           <option value="Indian Perfumes">Indian Perfumes</option>
           <option value="Attars">Attars</option>
           <option value="Deodorants">Deodorants</option>
+        </select>
+      </div>
+      <div>
+        <label>Gender</label>
+        <select id="add-gender" style="width:100%;padding:10px;">
+          <option value="Unisex">Unisex</option>
+          <option value="Men">Men</option>
+          <option value="Women">Women</option>
         </select>
       </div>
       <div style="grid-column: 1 / -1;">
@@ -736,6 +930,7 @@ function showAddForm() {
     const price = document.getElementById('add-price').value.trim();
     const stock = document.getElementById('add-stock').value;
     const category = document.getElementById('add-category').value;
+    const gender = document.getElementById('add-gender').value;
     const description = document.getElementById('add-description').value;
     const visibility = document.getElementById('add-visibility').checked;
     const is_bestseller = document.getElementById('add-bestseller').checked;
@@ -760,7 +955,7 @@ function showAddForm() {
           'Content-Type': 'application/json',
           ...(adminToken ? { 'x-admin-token': adminToken } : {})
         },
-        body: JSON.stringify({ name, size, price, stock, visibility, category, description, is_bestseller, images })
+        body: JSON.stringify({ name, size, price, stock, visibility, category, gender, description, is_bestseller, images })
       });
 
       if (!res.ok) {
@@ -790,7 +985,8 @@ if (window.location.pathname === '/products') {
 } else if (window.location.pathname === '/admin' || window.location.pathname === '/admin.html') {
   const token = sessionStorage.getItem('adminToken');
   if (token) {
-    document.getElementById('loginForm').style.display = 'none';
+    const lc2 = document.getElementById('loginContainer');
+    if (lc2) lc2.style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
     loadAdminProducts();
   }
@@ -1017,7 +1213,9 @@ window.addToOrder = async function (productId, name, size, price, image = null) 
 };
 
 window.updateQuantity = async function (productId, quantity) {
-  if (quantity < 1) return;
+  if (quantity < 1) {
+    return window.removeFromOrder(productId);
+  }
   try {
     const res = await fetch(`/api/cart/${productId}`, {
       method: 'PUT',
@@ -1346,3 +1544,208 @@ window.logoutUser = function (e) {
 
 // Call updateAuthUI on load
 updateAuthUI();
+
+
+// --- Reviews & Admin Tabs Logic ---
+window.switchAdminSection = function (section) {
+  if (section === 'products') {
+    document.getElementById('section-products').style.display = 'block';
+    document.getElementById('section-reviews').style.display = 'none';
+    document.getElementById('tab-section-products').classList.add('active');
+    document.getElementById('tab-section-reviews').classList.remove('active');
+  } else {
+    document.getElementById('section-products').style.display = 'none';
+    document.getElementById('section-reviews').style.display = 'block';
+    document.getElementById('tab-section-products').classList.remove('active');
+    document.getElementById('tab-section-reviews').classList.add('active');
+    fetchAdminReviews();
+  }
+};
+
+window.fetchAdminReviews = async function () {
+  const list = document.getElementById('adminReviewsList');
+  if (!list) return;
+
+  const token = sessionStorage.getItem('adminToken');
+  try {
+    const res = await fetch('/api/admin/store-reviews', {
+      headers: { 'x-admin-token': token }
+    });
+    if (!res.ok) throw new Error('Failed to load');
+    const reviews = await res.json();
+    
+    if (reviews.length === 0) {
+      list.innerHTML = '<p style="color: #888; font-style: italic;">No reviews found.</p>';
+      return;
+    }
+    
+    list.innerHTML = reviews.map(r => `
+      <div style="background: #FFF; padding: 15px; border-radius: 8px; border: 1px solid #EAEAEA; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="display: flex; gap: 4px; color: #FFD700; margin-bottom: 5px;">
+            ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
+          </div>
+          <strong style="display: block; margin-bottom: 5px;">${r.author_name || r.reviewer_name || 'Anonymous'}</strong>
+          <p style="margin: 0; color: #555; font-size: 0.9rem;">"${r.content || r.comment}"</p>
+          <small style="color: #999;">${new Date(r.created_at).toLocaleDateString()}</small>
+        </div>
+        <div style="display: flex; gap: 10px; flex-shrink: 0;">
+          <button class="btn" style="background: ${r.is_approved ? '#E0E0E0' : '#FFD700'}; color: #333;" onclick="approveReview('${r.id}')">${r.is_approved ? 'Disapprove' : 'Approve'}</button>
+          ${r.is_approved ? `<button class="btn" style="background: ${r.is_featured ? '#9C27B0' : '#E0E0E0'}; color: ${r.is_featured ? '#FFF' : '#333'};" onclick="toggleFeatureReview('${r.id}')">${r.is_featured ? '★ Featured' : 'Feature'}</button>` : ''}
+          <button class="btn" style="background: #FF6B6B;" onclick="deleteReview('${r.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = '<p style="color: #FF6B6B;">Error loading reviews.</p>';
+  }
+};
+
+window.approveReview = async function(id) {
+  const token = sessionStorage.getItem('adminToken');
+  try {
+    const res = await fetch('/api/admin/store-reviews/' + id + '/approve', {
+      method: 'PUT',
+      headers: { 'x-admin-token': token }
+    });
+    if (res.ok) fetchAdminReviews();
+  } catch(e) {}
+};
+
+window.toggleFeatureReview = async function(id) {
+  const token = sessionStorage.getItem('adminToken');
+  try {
+    const res = await fetch('/api/admin/store-reviews/' + id + '/feature', {
+      method: 'PUT',
+      headers: { 'x-admin-token': token }
+    });
+    if (res.ok) fetchAdminReviews();
+  } catch(e) {}
+};
+
+window.deleteReview = async function(id) {
+  if (!confirm('Delete review?')) return;
+  const token = sessionStorage.getItem('adminToken');
+  try {
+    const res = await fetch('/api/admin/store-reviews/' + id, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': token }
+    });
+    if (res.ok) fetchAdminReviews();
+  } catch(e) {}
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('userToken')) {
+    document.querySelectorAll('.nav-create-account').forEach(el => {
+      if (el.parentElement && el.parentElement.tagName === 'LI') {
+        el.parentElement.style.display = 'none';
+      } else {
+        el.style.display = 'none';
+      }
+    });
+  }
+});
+
+
+// ─── Homepage Reviews ─────────────────────────────────────────────────────
+(function fetchAndRenderReviews() {
+  const carousel = document.getElementById('reviewsCarousel');
+  if (!carousel) return;
+
+  fetch('/api/store-reviews?featured=true')
+    .then(r => r.ok ? r.json() : [])
+    .then(reviews => {
+      if (!reviews.length) {
+        carousel.innerHTML = '<p style="color:#888;font-style:italic;padding:20px;">No featured reviews yet.</p>';
+        return;
+      }
+      carousel.innerHTML = reviews.map(r => `
+        <div class="review-card" style="flex: 0 0 280px; scroll-snap-align: start; background: #1A1A1A; color: #FFF; padding: 26px 24px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease;">
+          <div>
+            <div style="display: flex; gap: 4px; color: #FFD700; font-size: 1.1rem; margin-bottom: 16px;">
+              ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}
+            </div>
+            <p style="margin: 0 0 20px; color: #FFFFFF; font-size: 0.98rem; line-height: 1.5; font-style: italic;">&ldquo;${r.content || r.comment || ''}&rdquo;</p>
+          </div>
+          <div>
+            <strong style="font-size: 0.85rem; color: #AAAAAA; letter-spacing: 1px; font-weight: 600; text-transform: uppercase;">&mdash; ${escapeHtml(r.author_name || r.reviewer_name || 'Anonymous')}</strong>
+          </div>
+        </div>
+      `).join('');
+
+      // Autoscroll logic
+      if (reviews.length > 1) {
+        let scrollInterval;
+        const startAutoScroll = () => {
+          scrollInterval = setInterval(() => {
+            const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+            if (carousel.scrollLeft >= maxScroll - 15) {
+              carousel.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+              carousel.scrollBy({ left: 344, behavior: 'smooth' });
+            }
+          }, 3500);
+        };
+
+        const stopAutoScroll = () => clearInterval(scrollInterval);
+
+        carousel.addEventListener('mouseenter', stopAutoScroll);
+        carousel.addEventListener('mouseleave', startAutoScroll);
+        carousel.addEventListener('touchstart', stopAutoScroll, { passive: true });
+        carousel.addEventListener('touchend', startAutoScroll, { passive: true });
+
+        startAutoScroll();
+      }
+    })
+    .catch(() => {});
+})();
+
+window.openReviewModal = function () {
+  const modal = document.getElementById('reviewModal');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeReviewModal = function () {
+  const modal = document.getElementById('reviewModal');
+  if (modal) modal.style.display = 'none';
+};
+
+document.getElementById('reviewForm')?.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const name = document.getElementById('reviewName')?.value?.trim();
+  const rating = parseInt(document.getElementById('reviewRating')?.value || '5');
+  const comment = document.getElementById('reviewComment')?.value?.trim();
+  const errDiv = document.getElementById('reviewError');
+  const okDiv = document.getElementById('reviewSuccess');
+  const btn = document.getElementById('reviewSubmitBtn');
+
+  if (errDiv) errDiv.style.display = 'none';
+  if (okDiv) okDiv.style.display = 'none';
+  if (!name || !comment) {
+    if (errDiv) { errDiv.textContent = 'Please fill in all fields.'; errDiv.style.display = 'block'; }
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch('/api/store-reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ author_name: name, rating, content: comment })
+    });
+    if (!res.ok) throw new Error('Failed');
+    if (okDiv) okDiv.style.display = 'block';
+    this.reset();
+    // Reset stars to 5
+    document.querySelectorAll('.star-btn').forEach((s, i) => {
+      s.classList.toggle('active', i < 5);
+    });
+    const ratingInput = document.getElementById('reviewRating');
+    if (ratingInput) ratingInput.value = '5';
+  } catch {
+    if (errDiv) { errDiv.textContent = 'Failed to submit. Please try again.'; errDiv.style.display = 'block'; }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+});

@@ -53,7 +53,7 @@
   <div class="container hero-content">
     <h1 class="hero-fade-1" data-aos="fade-up" data-aos-duration="1000">Authentic Middle Eastern Perfumes & Attar</h1>
     <p class="hero-fade-2" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">Discover premium scents crafted for elegance. Browse our collection and order seamlessly via WhatsApp.</p>
-    <a href="/products" class="btn hero-fade-3" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">View Products</a>
+    <a href="/products" class="btn btn-light hero-fade-3" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">View Products</a>
   </div>
 </section>
 
@@ -75,9 +75,73 @@
     </div>
   </section>
 
-  <footer class="footer">
+  <section class="reviews-section" style="padding: 60px 0; background: #FAF9F6; border-top: 1px solid rgba(0, 0, 0, 0.05);">
     <div class="container">
-      <p>&copy; 2026 Perfume Store. All rights reserved.</p>
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 30px;">
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #1A1A1A; margin: 0; font-weight: 700; line-height: 1.2;">What Our<br>Customers Say</h2>
+        <button onclick="openReviewModal()" class="btn" style="padding: 12px 28px; background: #1A1A1A; color: #FFF; border-radius: 30px; font-weight: 500; font-size: 0.9rem; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">Leave a Review</button>
+      </div>
+      <div id="reviewsCarousel" style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 4px 20px 4px; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #B0B0B0 #EFEFEF;">
+        <!-- Reviews populated here -->
+      </div>
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="/reviews" class="btn" style="background: #FFF; border: 1.5px solid #1A1A1A; color: #1A1A1A; padding: 12px 36px; border-radius: 30px; font-weight: 500; font-size: 0.95rem; text-decoration: none; display: inline-block; transition: all 0.2s;">See All Reviews</a>
+      </div>
+    </div>
+  </section>
+
+    <footer class="fat-footer">
+    <div class="container">
+      <div class="fat-footer-grid">
+        <!-- Column 1: Useful Links -->
+        <div>
+          <h4>Useful Links</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Terms & Conditions</a></li>
+            <li><a href="#">Return Policy</a></li>
+            <li><a href="#">Shipping Policy</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+            <li><a href="#">FAQ's</a></li>
+          </ul>
+        </div>
+        <!-- Column 2: My Account -->
+        <div>
+          <h4>My Account</h4>
+          <ul>
+            <li><a href="/account">Login / Profile</a></li>
+            <li><a class="nav-create-account" href="/account">Create an Account</a></li>
+          </ul>
+        </div>
+        <!-- Column 3: Get in Touch -->
+        <div>
+          <h4>Get in touch</h4>
+          <p>+91 98765 43210</p>
+          <p>support@perfumestore.com</p>
+        </div>
+        <!-- Column 4: Newsletter -->
+        <div>
+          <h4>Get latest offers and News</h4>
+          <form class="newsletter-form" onsubmit="handleNewsletterSubmit(event)">
+            <input type="email" placeholder="Enter email here" required autocomplete="email">
+            <button type="submit" aria-label="Subscribe">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </form>
+          <div id="newsletter-msg" style="display:none; font-size: 0.85rem; margin-top: -15px; margin-bottom: 20px;"></div>
+          <p>Apply for our free membership to receive exclusive deals, news, and events.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Perfume Store. All rights reserved.</p>
+        <div class="payment-icons">
+          <!-- Placeholder SVGs for payment gateways -->
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4A2 2 0 0 0 2 6v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM4 6h16v2H4V6zm0 12v-6h16v6H4z"/></svg>
+        </div>
+      </div>
     </div>
   </footer>
 
@@ -107,6 +171,37 @@
       <span id="authToggleText">Don't have an account?</span> 
       <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" style="color: var(--text-dark); font-weight: 600; text-decoration: underline;">Create one</a>
     </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 500px; padding: 30px;">
+    <span class="close" onclick="closeReviewModal()">&times;</span>
+    <h2 style="margin-bottom: 20px;">Leave a Review</h2>
+    <div id="reviewError" style="color: #FF6B6B; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;"></div>
+    <div id="reviewSuccess" style="color: #4CAF50; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;">Thank you! Your review has been submitted and is pending approval.</div>
+    
+    <form id="reviewForm">
+      <div style="margin-bottom: 15px;">
+        <input type="text" id="reviewName" placeholder="Your Name" class="form-control" required>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 0.9rem; margin-bottom: 5px; color: #555;">Rating</label>
+        <div id="starRating" style="display: flex; gap: 5px; cursor: pointer; font-size: 1.5rem; color: #FFD700;">
+          <span data-value="1">★</span>
+          <span data-value="2">★</span>
+          <span data-value="3">★</span>
+          <span data-value="4">★</span>
+          <span data-value="5">★</span>
+        </div>
+        <input type="hidden" id="reviewRating" value="5">
+      </div>
+      <div style="margin-bottom: 20px;">
+        <textarea id="reviewComment" placeholder="Tell us about your experience..." class="form-control" rows="4" required style="resize: vertical;"></textarea>
+      </div>
+      <button type="submit" class="btn" style="width: 100%;" id="reviewSubmitBtn">Submit Review</button>
+    </form>
   </div>
 </div>
 

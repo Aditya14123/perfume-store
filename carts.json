@@ -1,0 +1,28 @@
+{
+  "user_1782654564852": [
+    {
+      "productId": "1",
+      "name": "Armaf Club de Nuit Intense Man Pure Parfum",
+      "price": "3600",
+      "size": "150ml EDP",
+      "image": "/uploads/1769161688817.webp",
+      "quantity": 1
+    },
+    {
+      "productId": "2",
+      "name": "Rasasi Hawas Ice",
+      "price": "3000",
+      "size": "100ml EDP",
+      "image": "/uploads/hawasICE1.webp",
+      "quantity": 1
+    },
+    {
+      "productId": "1770118933153",
+      "name": "Afnan Supremacy Collector's Edition",
+      "price": "3800",
+      "size": "100ml EDP",
+      "image": "/uploads/SCE2.webp",
+      "quantity": 1
+    }
+  ]
+}

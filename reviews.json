@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1786090333887,
+    "reviewer_name": "Aditya",
+    "rating": 5,
+    "comment": "Awesome service",
+    "is_approved": true,
+    "created_at": "2026-08-07T08:12:13.887Z",
+    "is_featured": true
+  },
+  {
+    "id": 1786090613409,
+    "reviewer_name": "Test User",
+    "rating": 5,
+    "comment": "Great service and fast shipping!",
+    "is_approved": true,
+    "created_at": "2026-08-07T08:16:53.409Z",
+    "is_featured": true
+  },
+  {
+    "id": 1786090994281,
+    "reviewer_name": "Test User",
+    "rating": 5,
+    "comment": "This is a test review.",
+    "is_approved": true,
+    "created_at": "2026-08-07T08:23:14.281Z",
+    "is_featured": true
+  },
+  {
+    "id": 1786091092407,
+    "reviewer_name": "Mobile User",
+    "rating": 5,
+    "comment": "This is a mobile review.",
+    "is_approved": true,
+    "created_at": "2026-08-07T08:24:52.407Z",
+    "is_featured": true
+  },
+  {
+    "id": 1786091305017,
+    "reviewer_name": "Aditya",
+    "rating": 5,
+    "comment": "great service and fast shipping",
+    "is_approved": true,
+    "created_at": "2026-08-07T08:28:25.017Z",
+    "is_featured": true
+  },
+  {
+    "id": 1786103091372,
+    "reviewer_name": "Shreeman",
+    "rating": 5,
+    "comment": "waah kya perfume diya hai bhai.. maja hi aa gaya\n",
+    "is_approved": true,
+    "is_featured": true,
+    "created_at": "2026-08-07T11:44:51.372Z"
+  },
+  {
+    "id": 1786104538554,
+    "reviewer_name": "sir",
+    "rating": 1,
+    "comment": "didnt give any perfume for free",
+    "is_approved": false,
+    "is_featured": false,
+    "created_at": "2026-08-07T12:08:58.554Z"
+  },
+  {
+    "id": "1786190708111",
+    "author_name": "mohit",
+    "rating": 5,
+    "content": "great experience",
+    "is_approved": true,
+    "is_featured": false,
+    "created_at": "2026-08-08T12:05:08.111Z"
+  }
+]

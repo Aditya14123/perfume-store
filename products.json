@@ -14,7 +14,8 @@
     ],
     "description": "Discover the sophistication of Armaf Club De Nuit Intense Man Pure Parfum 150 ml. A bold, woody-spicy fragrance with notes of apple, bergamot, jasmine, and vanilla. Perfect for the modern man who seeks luxury and elegance in every spray.",
     "category": "Middle Eastern Perfumes",
-    "is_bestseller": true
+    "is_bestseller": true,
+    "gender": "Men"
   },
   {
     "id": 2,
@@ -29,7 +30,8 @@
     ],
     "description": "Hawas Ice by Rasasi is a Aromatic fragrance for men. Hawas Ice was launched in 2023. Top notes are Apple, Italian Lemon, Sicilian Bergamot and Star Anise; middle notes are Plum, Orange Blossom and Cardamon; base notes are Musk, Amber, Driftwood and Moss.",
     "category": "Middle Eastern Perfumes",
-    "is_bestseller": true
+    "is_bestseller": true,
+    "gender": "Men"
   },
   {
     "id": 1769078485319,
@@ -43,14 +45,15 @@
     "images": [
       "/uploads/1769161864199.jfif"
     ],
-    "is_bestseller": false
+    "is_bestseller": false,
+    "gender": "Unisex"
   },
   {
     "id": 1770118933153,
     "name": "Afnan Supremacy Collector's Edition",
     "size": "100ml EDP",
-    "price": "3700",
-    "stock": "in stock",
+    "price": "3800",
+    "stock": "out of stock",
     "visibility": true,
     "category": "Middle Eastern Perfumes",
     "description": "Supremacy Collector's Edition is a captivating masculine fragrance that honors the legacy of Afnan's beloved Supremacy collection. This exquisite scent combines the classic allure of a timeless classic with a refreshing twist of white floral and amber notes, creating a sophisticated and invigorating scent experience perfect for special occasions.",
@@ -59,7 +62,8 @@
       "/uploads/SCEwithbox.webp",
       "/uploads/SupremacyCollectionsEditionFront_Gray.webp"
     ],
-    "is_bestseller": true
+    "is_bestseller": true,
+    "gender": "Men"
   },
   {
     "id": 1781259024041,
@@ -71,8 +75,178 @@
     "category": "Middle Eastern Perfumes",
     "description": "Dunescape opens with bright citrus and herbaceous top notes including lemon, mandarin, bergamot, blood orange, ginger oil, juniper, and sage. The heart develops ozonic florals with geranium, rose, and apple alongside cashmeran. The base features warm amber, musk, and sandalwood, creating an earthy, woody finish.",
     "images": [
-      "https://aurelsg.com/cdn/shop/files/513a_-_armaf_dunescape.png?v=1766991708"
+      "/uploads/products/1781259024041/391072de43dab34afdc09456028538545b91812153df6a0939b4971483d7facb.jfif"
     ],
-    "is_bestseller": false
+    "is_bestseller": false,
+    "gender": "Men"
+  },
+  {
+    "id": 1781259024042,
+    "name": "Al Haramain Amber Oud Gold Edition",
+    "size": "100ml EDP",
+    "price": "3500",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Middle Eastern Perfumes",
+    "description": "Amber Oud Gold Edition by Al Haramain is an Amber Woody fragrance for women and men. Top notes are Bergamot, Green Notes, and Galbanum; middle notes are Melon, Pineapple, and Amber; base notes are Musk, Vanilla, and Woody Notes.",
+    "images": [
+      "/uploads/amber-oud-gold.png",
+      "/uploads/1769161688817.webp"
+    ],
+    "is_bestseller": true,
+    "gender": "Unisex"
+  },
+  {
+    "id": 1781259024043,
+    "name": "Swiss Arabian Shaghaf Oud",
+    "size": "75ml EDP",
+    "price": "2800",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Middle Eastern Perfumes",
+    "description": "Shaghaf Oud by Swiss Arabian is a Woody Aromatic fragrance for women and men. The fragrance features saffron, agarwood (oud), rose, and praline.",
+    "images": [
+      "/uploads/shaghaf-oud.png",
+      "/uploads/SCE2.webp"
+    ],
+    "is_bestseller": false,
+    "gender": "Unisex"
+  },
+  {
+    "id": 1781259024044,
+    "name": "Rasasi Daarej Pour Homme",
+    "size": "100ml EDP",
+    "price": "2200",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Middle Eastern Perfumes",
+    "description": "Daarej Pour Homme by Rasasi is an Aromatic Fougere fragrance for men. Top notes are Lavender, Mint, Bergamot, and Lemon; middle notes are Cinnamon, Clary Sage, and Caraway; base notes are Vanilla, Tonka Bean, and Amber.",
+    "images": [
+      "/uploads/daarej.png",
+      "/uploads/hawasICE1.webp"
+    ],
+    "is_bestseller": false,
+    "gender": "Men"
+  },
+  {
+    "id": 1781259024045,
+    "name": "Ajmal Aurum",
+    "size": "100ml EDP",
+    "price": "4200",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Indian Perfumes",
+    "description": "Aurum by Ajmal is a Amber Floral fragrance for women. Top notes are Saffron, Cardamom, and Rose; middle notes are Agarwood (Oud), Patchouli, and Jasmine; base notes are Amber, Musk, and Vanilla.",
+    "images": [
+      "/uploads/ajmal-aurum.png",
+      "/uploads/SCEwithbox.webp"
+    ],
+    "is_bestseller": true,
+    "gender": "Unisex"
+  },
+  {
+    "id": 1781259024046,
+    "name": "Rasasi Hawas for Her",
+    "size": "100ml EDP",
+    "price": "3200",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Indian Perfumes",
+    "description": "Hawas for Her by Rasasi is a Floral Fruity fragrance for women. Top notes are Apple, Pomegranate, and Bergamot; middle notes are Jasmine, Tuberose, and Rose; base notes are Musk, Cedar, and Sandalwood.",
+    "images": [
+      "/uploads/products/1781259024046/9639fc4011db63d14ee0cbbeaf66203ef8411123cfaf1f262a21db2d23a65948.jfif"
+    ],
+    "is_bestseller": false,
+    "gender": "Women"
+  },
+  {
+    "id": 1781259024047,
+    "name": "Al Haramain L'Aventure",
+    "size": "100ml EDP",
+    "price": "2600",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Indian Perfumes",
+    "description": "L'Aventure by Al Haramain is a Citrus Aromatic fragrance for men. Top notes are Bergamot, Lemon, and Elemi; middle notes are Ginger, Lily-of-the-Valley, and Violet; base notes are Musk, Patchouli, and Sandalwood.",
+    "images": [
+      "/uploads/products/1781259024047/10982f098e06feeb3bebe830aa43b72f800299a053ed40f98cc5a4ae62192e57.jfif"
+    ],
+    "is_bestseller": true,
+    "gender": "Men"
+  },
+  {
+    "id": 1781259024048,
+    "name": "Lattafa Oud Mood",
+    "size": "100ml EDP",
+    "price": "1800",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Attars",
+    "description": "Oud Mood by Lattafa is a Amber Woody fragrance. This concentrated attar features agarwood (oud), saffron, rose, and amber.",
+    "images": [
+      "/uploads/products/1781259024048/5f9f1569b3e53eaef9ea1b14bb0aa98f56e7a481770d000f3b9da74b16d151ad.jfif"
+    ],
+    "is_bestseller": true,
+    "gender": "Unisex"
+  },
+  {
+    "id": 1781259024049,
+    "name": "Al Haramain Manege Rouge",
+    "size": "12ml Attar",
+    "price": "1200",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Attars",
+    "description": "Manege Rouge by Al Haramain is a Floral Fruity fragrance. Top notes are Peach, Red Berries, and Bergamot; middle notes are Jasmine, Rose, and Orange Blossom; base notes are Vanilla, Musk, and Sandalwood.",
+    "images": [
+      "/uploads/products/1781259024049/53e11df060a8a931f75c479016c4bc2e6f8d04a8e3c8e7c2846013acf1ae5022.jfif"
+    ],
+    "is_bestseller": false,
+    "gender": "Women"
+  },
+  {
+    "id": 1781259024050,
+    "name": "Swiss Arabian Layali",
+    "size": "15ml Attar",
+    "price": "1500",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Attars",
+    "description": "Layali by Swiss Arabian is an Oriental Floral fragrance. Features black currant, orange blossom, ylang-ylang, rose, and agarwood (oud).",
+    "images": [
+      "/uploads/products/1781259024050/a150efe2b74998df417d2480aa80775c9930266bf7b1c72e7b92fa3367105c77.jfif"
+    ],
+    "is_bestseller": false,
+    "gender": "Unisex"
+  },
+  {
+    "id": 1781259024051,
+    "name": "Rasasi Blue for Men Deodorant",
+    "size": "200ml",
+    "price": "450",
+    "stock": "in stock",
+    "visibility": true,
+    "category": "Deodorants",
+    "description": "Blue for Men by Rasasi is a fresh, masculine deodorant body spray with notes of bergamot, lavender, and musk.",
+    "images": [
+      "/uploads/products/1781259024051/fcc4ecd9c306ac05b0a83b3a0b1f70a67ee1ee5a454c1a04224bb411476064cd.jfif"
+    ],
+    "is_bestseller": true,
+    "gender": "Men"
+  },
+  {
+    "id": 1781259024053,
+    "name": "Ajmal Silver Shade Deodorant",
+    "size": "200ml",
+    "price": "350",
+    "stock": "out of stock",
+    "visibility": true,
+    "category": "Deodorants",
+    "description": "Silver Shine by Ajmal is a premium deodorant for women with floral and musky notes.",
+    "images": [
+      "/uploads/products/1781259024053/93b1996e0a4a27c7ed6e9ee746291254317818ce4e9f1a34c79a3c7d9def3014.jfif"
+    ],
+    "is_bestseller": false,
+    "gender": "Unisex"
   }
 ]
