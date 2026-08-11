@@ -1074,7 +1074,10 @@ function showAddForm() {
   modalContent.style.padding = '20px';
 
   modalContent.innerHTML = `
-    <h3 style="margin-top:0">Add Product</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #EAE6DF; padding-bottom: 12px;">
+      <h3 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #1A1A1A;">Add New Product</h3>
+      <button type="button" onclick="document.getElementById('addProductModal')?.remove()" style="background: none; border: none; font-size: 1.8rem; color: #888; cursor: pointer; line-height: 1; padding: 2px 8px; border-radius: 6px; transition: color 0.2s;" onmouseover="this.style.color='#1A1A1A'" onmouseout="this.style.color='#888'" aria-label="Close modal">&times;</button>
+    </div>
     <div style="display:grid;grid-template-columns: repeat(auto-fit, minmax(220px,1fr));gap:14px;">
       <div style="display:flex;flex-direction:column;gap:5px;">
         <label>Name</label>
