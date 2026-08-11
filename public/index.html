@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,89 +9,112 @@
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-<nav class="navbar">
-  <div class="container navbar-container">
-    <a href="/" class="navbar-brand">Perfume Store</a>
-    <ul class="navbar-nav" id="navMenu">
-      <li><a href="/">Home</a></li>
-      <li><a href="/products">Products</a></li>
-      <li><a href="/how-it-works">How It Works</a></li>
-      <li><a href="/delivery-payment">Delivery & Payment</a></li>
-      <li><a href="/contact">Contact</a></li>
-    </ul>
-        <div class="navbar-actions">
-      <button aria-label="User Account" title="Sign In" id="navUserAuthBtn" onclick="openAuthModal()" style="background: none; border: none; cursor: pointer; color: var(--text-dark); margin-right: 15px; display: flex; align-items: center;  "><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
 
-      <button class="navbar-search-toggle" id="navSearchToggle" aria-label="Search">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-      </button>
-      <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+<body>
+  <nav class="navbar">
+    <div class="container navbar-container">
+      <a href="/" class="navbar-brand">Perfume Store</a>
+      <ul class="navbar-nav" id="navMenu">
+        <li><a href="/">Home</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/how-it-works">How It Works</a></li>
+        <li><a href="/delivery-payment">Delivery & Payment</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="#" onclick="openRequestModal(); return false;" class="nav-request-link"><span class="nav-request-icon">✨</span>Request a Fragrance</a></li>
+      </ul>
+      <div class="navbar-actions">
+        <button aria-label="User Account" title="Sign In" id="navUserAuthBtn" onclick="openAuthModal()"
+          style="background: none; border: none; cursor: pointer; color: var(--text-dark); margin-right: 15px; display: flex; align-items: center;  "><svg
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg></button>
+
+        <button class="navbar-search-toggle" id="navSearchToggle" aria-label="Search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+        <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="navbar-overlay" id="navOverlay"></div>
+  <div class="nav-search-overlay" id="navSearchOverlay">
+    <div class="nav-search-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="navSearchInput" placeholder="Search perfumes..." autocomplete="off">
+      <button id="navSearchClose" aria-label="Close search">&times;</button>
     </div>
   </div>
-</nav>
-<div class="navbar-overlay" id="navOverlay"></div>
-<div class="nav-search-overlay" id="navSearchOverlay">
-  <div class="nav-search-box">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8"></circle>
-      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-    </svg>
-    <input type="text" id="navSearchInput" placeholder="Search perfumes..." autocomplete="off">
-    <button id="navSearchClose" aria-label="Close search">&times;</button>
-  </div>
-</div>
 
   <section class="hero">
-  <div class="hero-bg"></div>
-  <div class="container hero-content">
-    <h1 class="hero-fade-1" data-aos="fade-up" data-aos-duration="1000">Authentic Middle Eastern Perfumes & Attar</h1>
-    <p class="hero-fade-2" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">Discover premium scents crafted for elegance. Browse our collection and order seamlessly via WhatsApp.</p>
-    <a href="/products" class="btn btn-light hero-fade-3" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">View Products</a>
-  </div>
-</section>
+    <div class="hero-bg"></div>
+    <div class="container hero-content">
+      <h1 class="hero-fade-1" data-aos="fade-up" data-aos-duration="1000">Authentic Middle Eastern Perfumes & Attar</h1>
+      <p class="hero-fade-2" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">Discover premium scents
+        crafted for elegance. Browse our collection and order seamlessly via WhatsApp.</p>
+      <a href="/products" class="btn btn-light hero-fade-3" data-aos="fade-up" data-aos-duration="1000"
+        data-aos-delay="400">View Products</a>
+    </div>
+  </section>
 
   <section class="supporting-sections">
     <div class="container">
       <div class="section-grid">
         <div class="section-card" data-aos="fade-up" data-aos-duration="800">
           <h3>Why Buy From Us</h3>
-          <p>We offer reasonable pricing with full transparency. All prices are indicative and confirmed via WhatsApp to ensure fairness and no hidden costs.</p>        </div>
+          <p>We offer reasonable pricing with full transparency. All prices are indicative and confirmed via WhatsApp to
+            ensure fairness and no hidden costs.</p>
+        </div>
         <div class="section-card" data-aos="fade-up" data-aos-duration="800" data-aos-delay="150">
           <h3>How Ordering Works</h3>
-          <p>Browse our products, confirm details via WhatsApp, and arrange payment and delivery offline for a personalized experience.</p>
+          <p>Browse our products, confirm details via WhatsApp, and arrange payment and delivery offline for a
+            personalized experience.</p>
         </div>
         <div class="section-card" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
           <h3>Trusted WhatsApp Ordering</h3>
-          <p>All inquiries and orders are handled through WhatsApp for secure, direct communication. Get real-time updates and confirmations.</p>
+          <p>All inquiries and orders are handled through WhatsApp for secure, direct communication. Get real-time
+            updates and confirmations.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="reviews-section" style="padding: 60px 0; background: #FAF9F6; border-top: 1px solid rgba(0, 0, 0, 0.05);">
+  <section class="reviews-section"
+    style="padding: 60px 0; background: #FAF9F6; border-top: 1px solid rgba(0, 0, 0, 0.05);">
     <div class="container">
-      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 30px;">
-        <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #1A1A1A; margin: 0; font-weight: 700; line-height: 1.2;">What Our<br>Customers Say</h2>
-        <button onclick="openReviewModal()" class="btn" style="padding: 12px 28px; background: #1A1A1A; color: #FFF; border-radius: 30px; font-weight: 500; font-size: 0.9rem; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">Leave a Review</button>
+      <div
+        style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 30px;">
+        <h2
+          style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #1A1A1A; margin: 0; font-weight: 700; line-height: 1.2;">
+          What Our<br>Customers Say</h2>
+        <button onclick="openReviewModal()" class="btn"
+          style="padding: 12px 28px; background: #1A1A1A; color: #FFF; border-radius: 30px; font-weight: 500; font-size: 0.9rem; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">Leave
+          a Review</button>
       </div>
-      <div id="reviewsCarousel" style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 4px 20px 4px; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #B0B0B0 #EFEFEF;">
+      <div id="reviewsCarousel"
+        style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 4px 20px 4px; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: #B0B0B0 #EFEFEF;">
         <!-- Reviews populated here -->
       </div>
       <div style="text-align: center; margin-top: 30px;">
-        <a href="/reviews" class="btn" style="background: #FFF; border: 1.5px solid #1A1A1A; color: #1A1A1A; padding: 12px 36px; border-radius: 30px; font-weight: 500; font-size: 0.95rem; text-decoration: none; display: inline-block; transition: all 0.2s;">See All Reviews</a>
+        <a href="/reviews" class="btn"
+          style="background: #FFF; border: 1.5px solid #1A1A1A; color: #1A1A1A; padding: 12px 36px; border-radius: 30px; font-weight: 500; font-size: 0.95rem; text-decoration: none; display: inline-block; transition: all 0.2s;">See
+          All Reviews</a>
       </div>
     </div>
   </section>
 
-    <footer class="fat-footer">
+  <footer class="fat-footer">
     <div class="container">
       <div class="fat-footer-grid">
         <!-- Column 1: Useful Links -->
@@ -120,92 +144,132 @@
           <p>+91 98765 43210</p>
           <p>support@perfumestore.com</p>
         </div>
-        <!-- Column 4: Newsletter -->
+        <!-- Column 4: Feedback & Suggestions -->
         <div>
-          <h4>Get latest offers and News</h4>
-          <form class="newsletter-form" onsubmit="handleNewsletterSubmit(event)">
-            <input type="email" placeholder="Enter email here" required autocomplete="email">
-            <button type="submit" aria-label="Subscribe">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
+          <h4>Share Feedback & Suggestions</h4>
+          <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px; line-height: 1.4;">Help us improve our website or service with your feedback.</p>
+          <form onsubmit="handleFeedbackSubmit(event)" style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" placeholder="Write feedback or suggestion..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; font-size: 0.85rem; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+            <button type="submit" style="width: 100%; padding: 10px; border-radius: 8px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">Send Feedback</button>
           </form>
-          <div id="newsletter-msg" style="display:none; font-size: 0.85rem; margin-top: -15px; margin-bottom: 20px;"></div>
-          <p>Apply for our free membership to receive exclusive deals, news, and events.</p>
+          <div id="feedback-msg" style="display:none; font-size: 0.85rem; margin-top: 10px; color: #4CAF50;"></div>
         </div>
       </div>
       <div class="footer-bottom">
         <p>&copy; 2026 Perfume Store. All rights reserved.</p>
         <div class="payment-icons">
           <!-- Placeholder SVGs for payment gateways -->
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4A2 2 0 0 0 2 6v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM4 6h16v2H4V6zm0 12v-6h16v6H4z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20 4H4A2 2 0 0 0 2 6v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM4 6h16v2H4V6zm0 12v-6h16v6H4z" />
+          </svg>
         </div>
       </div>
     </div>
   </footer>
 
-<!-- Auth Modal -->
-<div id="authModal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 400px; padding: 30px;">
-    <span class="close" onclick="closeAuthModal()">&times;</span>
-    <h2 id="authModalTitle" style="margin-bottom: 20px;">Sign In</h2>
-    <div id="authError" style="color: #FF6B6B; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;"></div>
-    
-    <form id="authForm">
-      <div id="authUsernameGroup" style="display: none; margin-bottom: 15px;">
-        <input type="text" id="authUsername" placeholder="Username" class="form-control" autocomplete="username">
+  <!-- Auth Modal -->
+  <div id="authModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; padding: 30px;">
+      <span class="close" onclick="closeAuthModal()">&times;</span>
+      <h2 id="authModalTitle" style="margin-bottom: 20px;">Sign In</h2>
+      <div id="authError"
+        style="color: #FF6B6B; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;"></div>
+
+      <form id="authForm">
+        <div id="authUsernameGroup" style="display: none; margin-bottom: 15px;">
+          <input type="text" id="authUsername" placeholder="Username" class="form-control" autocomplete="username">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="authEmail" placeholder="Email or Username" class="form-control" required
+            autocomplete="email">
+        </div>
+        <div class="mb-2" style="position: relative; margin-bottom: 20px;">
+          <input type="password" id="authPassword" placeholder="Password" class="form-control" required
+            autocomplete="current-password" style="padding-right: 40px; margin-bottom: 0;">
+          <button type="button" onclick="toggleAuthPassword()" id="authEyeBtn"
+            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: #666; display: flex; align-items: center; justify-content: center;">
+            <svg id="authEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+        <button type="submit" class="btn" style="width: 100%; margin-bottom: 15px;" id="authSubmitBtn">Sign In</button>
+      </form>
+      <div style="text-align: center; font-size: 0.9rem;">
+        <span id="authToggleText">Don't have an account?</span>
+        <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink"
+          style="color: var(--text-dark); font-weight: 600; text-decoration: underline;">Create one</a>
       </div>
-      <div style="margin-bottom: 15px;">
-        <input type="text" id="authEmail" placeholder="Email or Username" class="form-control" required autocomplete="email">
-      </div>
-      <div class="mb-2" style="position: relative; margin-bottom: 20px;">
-        <input type="password" id="authPassword" placeholder="Password" class="form-control" required autocomplete="current-password" style="padding-right: 40px; margin-bottom: 0;">
-        <button type="button" onclick="toggleAuthPassword()" id="authEyeBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: #666; display: flex; align-items: center; justify-content: center;">
-          <svg id="authEyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-        </button>
-      </div>
-      <button type="submit" class="btn" style="width: 100%; margin-bottom: 15px;" id="authSubmitBtn">Sign In</button>
-    </form>
-    <div style="text-align: center; font-size: 0.9rem;">
-      <span id="authToggleText">Don't have an account?</span> 
-      <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" style="color: var(--text-dark); font-weight: 600; text-decoration: underline;">Create one</a>
     </div>
   </div>
-</div>
 
-<!-- Review Modal -->
-<div id="reviewModal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 500px; padding: 30px;">
-    <span class="close" onclick="closeReviewModal()">&times;</span>
-    <h2 style="margin-bottom: 20px;">Leave a Review</h2>
-    <div id="reviewError" style="color: #FF6B6B; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;"></div>
-    <div id="reviewSuccess" style="color: #4CAF50; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;">Thank you! Your review has been submitted and is pending approval.</div>
-    
-    <form id="reviewForm">
-      <div style="margin-bottom: 15px;">
-        <input type="text" id="reviewName" placeholder="Your Name" class="form-control" required>
-      </div>
-      <div style="margin-bottom: 15px;">
-        <label style="display: block; font-size: 0.9rem; margin-bottom: 5px; color: #555;">Rating</label>
-        <div id="starRating" style="display: flex; gap: 5px; cursor: pointer; font-size: 1.5rem; color: #FFD700;">
-          <span data-value="1">★</span>
-          <span data-value="2">★</span>
-          <span data-value="3">★</span>
-          <span data-value="4">★</span>
-          <span data-value="5">★</span>
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px; padding: 30px;">
+      <span class="close" onclick="closeReviewModal()">&times;</span>
+      <h2 style="margin-bottom: 20px;">Leave a Review</h2>
+      <div id="reviewError"
+        style="color: #FF6B6B; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;"></div>
+      <div id="reviewSuccess"
+        style="color: #4CAF50; font-size: 0.9rem; display: none; margin-bottom: 15px; text-align: center;">Thank you!
+        Your review has been submitted.</div>
+
+      <form id="reviewForm">
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="reviewName" placeholder="Your Name" class="form-control" required>
         </div>
-        <input type="hidden" id="reviewRating" value="5">
-      </div>
-      <div style="margin-bottom: 20px;">
-        <textarea id="reviewComment" placeholder="Tell us about your experience..." class="form-control" rows="4" required style="resize: vertical;"></textarea>
-      </div>
-      <button type="submit" class="btn" style="width: 100%;" id="reviewSubmitBtn">Submit Review</button>
-    </form>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 0.9rem; margin-bottom: 5px; color: #555;">Rating</label>
+          <div id="starRating" style="display: flex; gap: 5px; cursor: pointer; font-size: 1.5rem; color: #FFD700;">
+            <span data-value="1">★</span>
+            <span data-value="2">★</span>
+            <span data-value="3">★</span>
+            <span data-value="4">★</span>
+            <span data-value="5">★</span>
+          </div>
+          <input type="hidden" id="reviewRating" value="5">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <textarea id="reviewComment" placeholder="Tell us about your experience..." class="form-control" rows="4"
+            required style="resize: vertical;"></textarea>
+        </div>
+        <button type="submit" class="btn" style="width: 100%;" id="reviewSubmitBtn">Submit Review</button>
+      </form>
+    </div>
   </div>
-</div>
+
+  <!-- Request a Fragrance Modal -->
+  <div id="requestFragranceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #FFF; width: 100%; max-width: 460px; border-radius: 18px; padding: 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); position: relative;">
+      <button type="button" onclick="closeRequestModal()" style="position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 1.6rem; color: #888; cursor: pointer; line-height: 1;">&times;</button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 46px; height: 46px; border-radius: 50%; background: #FAF9F6; border: 1px solid #EAE6DF; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 1.3rem;">✨</div>
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.55rem; color: #1A1A1A; margin-bottom: 6px; font-weight: 700;">Request a Fragrance</h3>
+        <p style="font-size: 0.85rem; color: #666; margin: 0; line-height: 1.45;">Can't find your desired perfume? Tell us what you need and we'll source it for you via WhatsApp!</p>
+      </div>
+
+      <form onsubmit="handleRequestFragranceSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1A1A1A; margin-bottom: 5px;">Fragrance Name <span style="color: #D9534F;">*</span></label>
+          <input type="text" id="reqPerfumeName" placeholder="e.g. Creed Aventus / Khamrah Qahwa" required style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #DDD; font-size: 0.9rem; outline: none;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1A1A1A; margin-bottom: 5px;">Additional Notes (Optional)</label>
+          <textarea id="reqPerfumeNotes" rows="3" placeholder="e.g. Looking for best price, availability status, or urgent delivery..." style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #DDD; font-size: 0.9rem; outline: none; resize: none;"></textarea>
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 13px; border-radius: 30px; border: none; background: #1A1A1A; color: #FFF; font-weight: 600; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.15); margin-top: 4px; transition: all 0.2s;">Send Request via WhatsApp</button>
+      </form>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="/script.js"></script>
 </body>
+
 </html>

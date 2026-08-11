@@ -15,7 +15,8 @@
     "description": "Discover the sophistication of Armaf Club De Nuit Intense Man Pure Parfum 150 ml. A bold, woody-spicy fragrance with notes of apple, bergamot, jasmine, and vanilla. Perfect for the modern man who seeks luxury and elegance in every spray.",
     "category": "Middle Eastern Perfumes",
     "is_bestseller": true,
-    "gender": "Men"
+    "gender": "Men",
+    "low_stock_badge": "2"
   },
   {
     "id": 2,
@@ -31,7 +32,8 @@
     "description": "Hawas Ice by Rasasi is a Aromatic fragrance for men. Hawas Ice was launched in 2023. Top notes are Apple, Italian Lemon, Sicilian Bergamot and Star Anise; middle notes are Plum, Orange Blossom and Cardamon; base notes are Musk, Amber, Driftwood and Moss.",
     "category": "Middle Eastern Perfumes",
     "is_bestseller": true,
-    "gender": "Men"
+    "gender": "Men",
+    "low_stock_badge": "2"
   },
   {
     "id": 1769078485319,
@@ -46,14 +48,15 @@
       "/uploads/1769161864199.jfif"
     ],
     "is_bestseller": false,
-    "gender": "Unisex"
+    "gender": "Unisex",
+    "low_stock_badge": "1"
   },
   {
     "id": 1770118933153,
     "name": "Afnan Supremacy Collector's Edition",
     "size": "100ml EDP",
     "price": "3800",
-    "stock": "out of stock",
+    "stock": "in stock",
     "visibility": true,
     "category": "Middle Eastern Perfumes",
     "description": "Supremacy Collector's Edition is a captivating masculine fragrance that honors the legacy of Afnan's beloved Supremacy collection. This exquisite scent combines the classic allure of a timeless classic with a refreshing twist of white floral and amber notes, creating a sophisticated and invigorating scent experience perfect for special occasions.",
@@ -63,7 +66,8 @@
       "/uploads/SupremacyCollectionsEditionFront_Gray.webp"
     ],
     "is_bestseller": true,
-    "gender": "Men"
+    "gender": "Men",
+    "low_stock_badge": "2"
   },
   {
     "id": 1781259024041,
@@ -84,7 +88,7 @@
     "id": 1781259024042,
     "name": "Al Haramain Amber Oud Gold Edition",
     "size": "100ml EDP",
-    "price": "3500",
+    "price": "3550",
     "stock": "in stock",
     "visibility": true,
     "category": "Middle Eastern Perfumes",
@@ -94,7 +98,8 @@
       "/uploads/1769161688817.webp"
     ],
     "is_bestseller": true,
-    "gender": "Unisex"
+    "gender": "Unisex",
+    "low_stock_badge": "none"
   },
   {
     "id": 1781259024043,
@@ -247,6 +252,7 @@
       "/uploads/products/1781259024053/93b1996e0a4a27c7ed6e9ee746291254317818ce4e9f1a34c79a3c7d9def3014.jfif"
     ],
     "is_bestseller": false,
-    "gender": "Unisex"
+    "gender": "Unisex",
+    "low_stock_badge": "none"
   }
 ]

@@ -82,30 +82,41 @@ body {
   color: #1A1A1A;
 }
 
-/* Hamburger button - hidden on desktop */
 .navbar-toggle {
   display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px;
+  color: #1A1A1A;
   z-index: 600;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: background 0.2s ease;
+}
+
+.navbar-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .navbar-toggle span {
   display: block;
-  width: 26px;
+  width: 20px;
   height: 2px;
-  background-color: #333;
-  border-radius: 2px;
-  transition: all 0.3s ease;
+  background-color: #1A1A1A;
+  border-radius: 1px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  margin: 2px 0;
+  transform-origin: center;
 }
 
 .navbar-toggle.active span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
+  transform: translateY(6px) rotate(45deg);
 }
 
 .navbar-toggle.active span:nth-child(2) {
@@ -113,7 +124,7 @@ body {
 }
 
 .navbar-toggle.active span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 /* Navbar search icon */
@@ -247,6 +258,158 @@ body {
     padding: 16px 0;
     font-size: 1.1rem;
   }
+
+  .nav-request-link {
+    color: #1A1A1A !important;
+    font-weight: normal !important;
+    transition: color 0.2s ease;
+  }
+
+  .nav-request-link:hover {
+    color: #D4AF37 !important;
+  }
+
+  .nav-request-icon {
+    margin-right: 6px;
+    color: #D4AF37;
+  }
+
+/* ─── Low Stock Scarcity Badges ─────────────────────────────────────────── */
+.card-badge-container {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scarcity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
+  animation: badgePulse 2.5s infinite ease-in-out;
+}
+
+.scarcity-badge-few {
+  background: rgba(255, 248, 225, 0.95);
+  color: #B78103;
+  border: 1px solid #FFE082;
+}
+
+.scarcity-badge-two {
+  background: rgba(255, 243, 224, 0.95);
+  color: #E65100;
+  border: 1px solid #FFCC80;
+}
+
+.scarcity-badge-last {
+  background: rgba(255, 235, 238, 0.95);
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* ─── Admin Autocomplete & Row Highlight ───────────────────────────────── */
+.admin-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 320px;
+  background: #FFFFFF !important;
+  border: 1.5px solid #1A1A1A !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18) !important;
+  z-index: 99999 !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  padding: 4px 0 !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.admin-search-item {
+  padding: 12px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid #EAE6DF !important;
+  cursor: pointer !important;
+  font-size: 0.88rem !important;
+  background: #FFFFFF !important;
+  color: #1A1A1A !important;
+  transition: all 0.15s ease !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.admin-search-item *,
+.admin-search-item div,
+.admin-search-item span {
+  cursor: pointer !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.admin-search-item:last-child {
+  border-bottom: none !important;
+}
+
+.admin-search-item:hover {
+  background: #FAF9F6 !important;
+  color: #D4AF37 !important;
+}
+
+.product-row-highlight {
+  animation: rowGlow 2s ease-out !important;
+  border: 2px solid #D4AF37 !important;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4) !important;
+}
+
+@keyframes rowGlow {
+  0% { background-color: #FFF9C4; transform: scale(1.01); }
+  50% { background-color: #FFF59D; }
+  100% { background-color: transparent; transform: scale(1); }
+}
+
+/* ─── Quick Price Tab Rows ─────────────────────────────────────────────── */
+.quick-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #FFFFFF;
+  border: 1px solid #EAE6DF;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: all 0.25s ease;
+}
+
+.quick-price-row h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.quick-price-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
   /* Dark overlay behind the open menu */
   .navbar-overlay {

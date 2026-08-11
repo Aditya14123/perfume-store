@@ -164,6 +164,7 @@ function normalizeProduct(p) {
   safe.stock = String(p.stock || 'in stock');
   safe.visibility = p.visibility !== false; // default true
   safe.is_bestseller = p.is_bestseller === true; // default false
+  safe.low_stock_badge = String(p.low_stock_badge || 'none'); // 'none' | 'few' | '2' | '1'
   safe.category = String(p.category || 'Middle Eastern Perfumes');
   safe.description = safe.description ? String(safe.description) : '';
   safe.images = Array.isArray(safe.images) ? safe.images.map(x => String(x)) : [];
@@ -815,11 +816,168 @@ app.delete('/api/cart', async (req, res) => {
   }
 });
 
+// ─── Store Reviews Endpoints ──────────────────────────────────────────────────
+const REVIEWS_FILE = path.join(__dirname, 'reviews.json');
+
+async function getStoreReviews() {
+  if (useDatabase) {
+    try {
+      const res = await pool.query('SELECT * FROM reviews ORDER BY created_at DESC');
+      return res.rows.map(r => ({
+        ...r,
+        author_name: r.author_name || r.reviewer_name,
+        content: r.content || r.comment
+      }));
+    } catch (e) {
+      return [];
+    }
+  } else {
+    try {
+      const data = await fs.readFile(REVIEWS_FILE, 'utf-8');
+      const list = JSON.parse(data);
+      return list.map(r => ({
+        ...r,
+        author_name: r.author_name || r.reviewer_name,
+        content: r.content || r.comment
+      }));
+    } catch (err) {
+      return [];
+    }
+  }
+}
+
+async function saveStoreReviews(reviews) {
+  await fs.writeFile(REVIEWS_FILE, JSON.stringify(reviews, null, 2));
+}
+
+app.get('/api/store-reviews', async (req, res) => {
+  try {
+    const all = await getStoreReviews();
+    let approved = all.filter(r => r.is_approved !== false);
+    if (req.query.featured === 'true') {
+      approved = approved.filter(r => r.is_featured === true);
+    }
+    res.json(approved);
+  } catch (err) {
+    console.error('Failed to get store reviews:', err);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+app.post('/api/store-reviews', async (req, res) => {
+  try {
+    const author_name = (req.body.author_name || req.body.reviewer_name || '').trim();
+    const content = (req.body.content || req.body.comment || '').trim();
+    const rating = parseInt(req.body.rating, 10) || 5;
+
+    if (!author_name || !content) {
+      return res.status(400).json({ error: 'Name and review content are required.' });
+    }
+
+    const newReview = {
+      id: Date.now(),
+      author_name,
+      reviewer_name: author_name,
+      rating,
+      content,
+      comment: content,
+      is_approved: true,
+      is_featured: false,
+      created_at: new Date().toISOString()
+    };
+
+    if (useDatabase) {
+      await pool.query(
+        `INSERT INTO reviews (id, author_name, rating, content, is_approved, is_featured, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [newReview.id, newReview.author_name, newReview.rating, newReview.content, true, false, newReview.created_at]
+      );
+    } else {
+      const all = await getStoreReviews();
+      all.unshift(newReview);
+      await saveStoreReviews(all);
+    }
+
+    res.json({ success: true, review: newReview });
+  } catch (err) {
+    console.error('Failed to post review:', err);
+    res.status(500).json({ error: 'Failed to post review' });
+  }
+});
+
+app.get('/api/admin/store-reviews', requireAdmin, async (req, res) => {
+  try {
+    const all = await getStoreReviews();
+    res.json(all);
+  } catch (err) {
+    console.error('Failed to fetch admin reviews:', err);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+app.put('/api/admin/store-reviews/:id/approve', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (useDatabase) {
+      await pool.query('UPDATE reviews SET is_approved = NOT COALESCE(is_approved, false) WHERE id = $1', [id]);
+    } else {
+      const all = await getStoreReviews();
+      const item = all.find(r => String(r.id) === String(id));
+      if (item) {
+        item.is_approved = !item.is_approved;
+        await saveStoreReviews(all);
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to toggle approve:', err);
+    res.status(500).json({ error: 'Failed to update review approval status' });
+  }
+});
+
+app.put('/api/admin/store-reviews/:id/feature', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (useDatabase) {
+      await pool.query('UPDATE reviews SET is_featured = NOT COALESCE(is_featured, false) WHERE id = $1', [id]);
+    } else {
+      const all = await getStoreReviews();
+      const item = all.find(r => String(r.id) === String(id));
+      if (item) {
+        item.is_featured = !item.is_featured;
+        await saveStoreReviews(all);
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to toggle feature:', err);
+    res.status(500).json({ error: 'Failed to update review featured status' });
+  }
+});
+
+app.delete('/api/admin/store-reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (useDatabase) {
+      await pool.query('DELETE FROM reviews WHERE id = $1', [id]);
+    } else {
+      const all = await getStoreReviews();
+      const filtered = all.filter(r => String(r.id) !== String(id));
+      await saveStoreReviews(filtered);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to delete review:', err);
+    res.status(500).json({ error: 'Failed to delete review' });
+  }
+});
+
 // ─── Page routes ──────────────────────────────────────────────────────────────
 const pub = (file) => path.join(__dirname, 'public', file);
 app.get('/', (req, res) => res.sendFile(pub('index.html')));
 app.get('/products', (req, res) => res.sendFile(pub('products.html')));
 app.get('/product/:id', (req, res) => res.sendFile(pub('product-detail.html')));
+app.get('/reviews', (req, res) => res.sendFile(pub('reviews.html')));
 app.get('/how-it-works', (req, res) => res.sendFile(pub('how-it-works.html')));
 app.get('/delivery-payment', (req, res) => res.sendFile(pub('delivery-payment.html')));
 app.get('/contact', (req, res) => res.sendFile(pub('contact.html')));

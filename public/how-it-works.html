@@ -17,6 +17,7 @@
       <li><a href="/how-it-works">How It Works</a></li>
       <li><a href="/delivery-payment">Delivery & Payment</a></li>
       <li><a href="/contact">Contact</a></li>
+      <li><a href="#" onclick="openRequestModal(); return false;" class="nav-request-link"><span class="nav-request-icon">✨</span>Request a Fragrance</a></li>
     </ul>
         <div class="navbar-actions">
       <button aria-label="User Account" title="Sign In" id="navUserAuthBtn" onclick="openAuthModal()" style="background: none; border: none; cursor: pointer; color: var(--text-dark); margin-right: 15px; display: flex; align-items: center;  "><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
@@ -97,19 +98,15 @@
           <p>+91 98765 43210</p>
           <p>support@perfumestore.com</p>
         </div>
-        <!-- Column 4: Newsletter -->
+        <!-- Column 4: Feedback & Suggestions -->
         <div>
-          <h4>Get latest offers and News</h4>
-          <form class="newsletter-form" onsubmit="handleNewsletterSubmit(event)">
-            <input type="email" placeholder="Enter email here" required autocomplete="email">
-            <button type="submit" aria-label="Subscribe">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
+          <h4>Share Feedback & Suggestions</h4>
+          <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px; line-height: 1.4;">Help us improve our website or service with your feedback.</p>
+          <form onsubmit="handleFeedbackSubmit(event)" style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" placeholder="Write feedback or suggestion..." required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; font-size: 0.85rem; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+            <button type="submit" style="width: 100%; padding: 10px; border-radius: 8px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">Send Feedback</button>
           </form>
-          <div id="newsletter-msg" style="display:none; font-size: 0.85rem; margin-top: -15px; margin-bottom: 20px;"></div>
-          <p>Apply for our free membership to receive exclusive deals, news, and events.</p>
+          <div id="feedback-msg" style="display:none; font-size: 0.85rem; margin-top: 10px; color: #4CAF50;"></div>
         </div>
       </div>
       <div class="footer-bottom">

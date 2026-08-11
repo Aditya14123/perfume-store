@@ -108,6 +108,25 @@ function escapeHtml(str) {
 function renderProducts(containerId, products) {
   const container = document.getElementById(containerId);
   if (!container) return;
+
+  if (!products || products.length === 0) {
+    const searchVal = (document.getElementById('searchInput')?.value || document.getElementById('navSearchInput')?.value || '').trim();
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: #FAF9F6; border: 1px dashed #EAE6DF; border-radius: 20px; margin: 20px 0;">
+        <div style="font-size: 2.2rem; margin-bottom: 12px;">✨</div>
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.45rem; color: #1A1A1A; margin-bottom: 8px; font-weight: 700;">Can't Find Your Fragrance?</h3>
+        <p style="font-size: 0.88rem; color: #666; max-width: 440px; margin: 0 auto 20px; line-height: 1.5;">
+          ${searchVal ? `We couldn't find any match for "<strong>${escapeHtml(searchVal)}</strong>".` : 'Looking for a rare decant or specific perfume?'}
+          Tell us what you're looking for and we'll source it for you via WhatsApp!
+        </p>
+        <button type="button" onclick="openRequestModalWithQuery('${escapeHtml(searchVal)}')" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px; border-radius: 30px; border: 1.5px solid #1A1A1A; background: #1A1A1A; color: #FFF; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+          <span>✨</span> Request ${searchVal ? `"${escapeHtml(searchVal)}"` : 'a Fragrance'} Now
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = products.map(p => {
     const name = escapeHtml(p.name || '');
     const size = escapeHtml(p.size || '');
@@ -177,6 +196,7 @@ async function loadProductDetail() {
     const images = Array.isArray(product.images) ? product.images : [];
     const safeStock = product.stock ?? '';
     const stockLabel = safeStock;
+    const isOutOfStock = (product.stock || '').toLowerCase().trim() === 'out of stock';
 
     let currentImageIndex = 0;
     const container = document.getElementById('productDetail');
@@ -203,16 +223,47 @@ async function loadProductDetail() {
             </span>
           </div>
 
+          ${product.low_stock_badge === 'few' ? `
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFF8E1; color: #B78103; border: 1px solid #FFE082; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; margin-bottom: 16px;">
+              🔥 High Demand: Only Few Items Left in Stock!
+            </div>
+          ` : product.low_stock_badge === '2' ? `
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; margin-bottom: 16px;">
+              🔥 Almost Sold Out: Only 2 Bottles Remaining!
+            </div>
+          ` : product.low_stock_badge === '1' ? `
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFEBEE; color: #C62828; border: 1px solid #FFCDD2; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; margin-bottom: 16px;">
+              🔥 Extremely Rare: Last Bottle in Stock! Order now before it's gone.
+            </div>
+          ` : ''}
+
           <div style="margin-bottom: 18px; display: flex; align-items: baseline; gap: 8px;">
-            <span style="font-size: 1.8rem; font-weight: 700; color: #1A1A1A; font-family: 'Inter', sans-serif;">₹${escapeHtml(product.price || '')}</span>
+            <span style="font-size: 1.8rem; font-weight: 700; color: #1A1A1A; font-family: 'Inter', sans-serif;">&#8377;${escapeHtml(product.price || '')}</span>
             <span style="font-size: 0.85rem; color: #777;">(Approx – confirm on WhatsApp)</span>
           </div>
 
-          <p style="color: #444; line-height: 1.65; font-size: 0.98rem; margin-bottom: 24px;">${escapeHtml(product.description || '')}</p>
+          <p style="color: #444; line-height: 1.65; font-size: 0.98rem; margin-bottom: 20px;">${escapeHtml(product.description || '')}</p>
 
-          <div style="display: flex; gap: 12px; margin-top: 20px;">
-            <button onclick="addToOrder('${product.id}', '${escapeHtml((product.name || '').replace(/'/g, "\\'"))}', '${escapeHtml(product.size)}', '${escapeHtml(product.price)}', '${escapeHtml(images[0] || '')}')" class="btn btn-secondary" ${stockLabel === 'out of stock' ? 'disabled' : ''} style="flex: 1; cursor: pointer; font-weight: 600; padding: 14px; border-radius: 30px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; transition: all 0.2s;">Add to Cart</button>
-            <a href="https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I'm interested in " + (product.name || "") + " (" + (product.size || "") + ")!")}" class="btn btn-primary" ${stockLabel === 'out of stock' ? 'style="pointer-events: none; opacity: 0.5; flex: 1; padding: 14px; border-radius: 30px;"' : 'style="flex: 1; padding: 14px; border-radius: 30px; background: #1A1A1A; color: #FFF; font-weight: 600; text-align: center; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15);"'}>Buy Now</a>
+          <div style="margin-bottom: 22px; display: flex; align-items: center; gap: 14px; ${isOutOfStock ? 'opacity: 0.45; pointer-events: none;' : ''}">
+            <label style="font-size: 0.9rem; font-weight: 600; color: #1A1A1A;">Quantity:</label>
+            <div style="display: flex; align-items: center; border: 1.5px solid #1A1A1A; border-radius: 30px; overflow: hidden; background: #FFF; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+              <button type="button" onclick="changeDetailQty(-1)" ${isOutOfStock ? 'disabled' : ''} style="width: 38px; height: 38px; border: none; background: transparent; cursor: pointer; font-size: 1.2rem; font-weight: 600; color: #1A1A1A; display: flex; align-items: center; justify-content: center;">-</button>
+              <input type="text" id="detailQty" value="1" readonly style="width: 44px; text-align: center; border: none; background: transparent; font-size: 1rem; font-weight: 700; color: #1A1A1A; outline: none;">
+              <button type="button" onclick="changeDetailQty(1)" ${isOutOfStock ? 'disabled' : ''} style="width: 38px; height: 38px; border: none; background: transparent; cursor: pointer; font-size: 1.2rem; font-weight: 600; color: #1A1A1A; display: flex; align-items: center; justify-content: center;">+</button>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+            <div style="display: flex; gap: 12px;">
+              <button onclick="addDetailToCart('${product.id}', '${escapeHtml((product.name || '').replace(/'/g, "\\'"))}', '${escapeHtml(product.size)}', '${escapeHtml(product.price)}', '${escapeHtml(images[0] || '')}')" ${isOutOfStock ? 'disabled style="flex: 1; padding: 14px; border-radius: 30px; border: 1px solid #DDD; background: #F5F5F5; color: #999; font-weight: 600; cursor: not-allowed; pointer-events: none;"' : 'class="btn btn-secondary" style="flex: 1; cursor: pointer; font-weight: 600; padding: 14px; border-radius: 30px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; transition: all 0.2s;"'}>${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</button>
+              <button onclick="buyNowWhatsAppDetail('${escapeHtml((product.name || '').replace(/'/g, "\\'"))}', '${escapeHtml(product.size)}', '${escapeHtml(product.price)}')" ${isOutOfStock ? 'disabled style="flex: 1; padding: 14px; border-radius: 30px; border: 1px solid #DDD; background: #F5F5F5; color: #999; font-weight: 600; cursor: not-allowed; pointer-events: none;"' : 'class="btn btn-primary" style="flex: 1; padding: 14px; border-radius: 30px; background: #1A1A1A; color: #FFF; font-weight: 600; text-align: center; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.15);"'}>${isOutOfStock ? 'Out of Stock' : 'Buy Now'}</button>
+            </div>
+
+            ${isOutOfStock ? `
+              <button type="button" onclick="openRequestModalWithQuery('${escapeHtml((product.name || '').replace(/'/g, "\\'"))}')" style="width: 100%; padding: 14px; border-radius: 30px; border: 1.5px solid #1A1A1A; background: #FFF; color: #1A1A1A; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+                ✨ Request This Fragrance via WhatsApp
+              </button>
+            ` : ''}
           </div>
 
           <div style="margin-top: 28px; padding: 20px; background: #FAF9F6; border: 1px solid #EAE6DF; border-radius: 14px; display: flex; flex-direction: column; gap: 14px;">
@@ -281,6 +332,39 @@ function updateThumbnailActive(idx) {
     img.classList.toggle('active', i === idx);
   });
 }
+
+// Quantity selector & Buy Now handlers for Product Detail Page
+window.changeDetailQty = function(delta) {
+  const input = document.getElementById('detailQty');
+  if (!input) return;
+  let val = parseInt(input.value, 10) || 1;
+  val = Math.max(1, Math.min(99, val + delta));
+  input.value = val;
+};
+
+window.addDetailToCart = function(id, name, size, price, img) {
+  const qtyInput = document.getElementById('detailQty');
+  const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
+  for (let i = 0; i < qty; i++) {
+    addToOrder(id, name, size, price, img);
+  }
+};
+
+window.buyNowWhatsAppDetail = function(name, size, price) {
+  const qtyInput = document.getElementById('detailQty');
+  const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
+  const numPrice = parseFloat(String(price).replace(/[^0-9.]/g, '')) || 0;
+  const totalPrice = numPrice * qty;
+  
+  let msg = `Hi, I would like to order:\n- ${qty}x ${name} (${size})\n`;
+  if (totalPrice > 0) {
+    msg += `Total: ₹${totalPrice.toLocaleString('en-IN')}\n`;
+  }
+  msg += `Please confirm availability and payment details.`;
+  
+  const url = `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+};
 // Search and filter functionality
 function filterProducts() {
   const query = document.getElementById('searchBar')?.value.toLowerCase() || '';
@@ -395,12 +479,27 @@ document.getElementById('filterToggleBtn')?.addEventListener('click', () => {
   }
 });
 
-// Search bar
+// Storefront Products Page Search bar
 let filterTimeout = null;
-document.getElementById('searchBar')?.addEventListener('input', () => {
-  clearTimeout(filterTimeout);
-  filterTimeout = setTimeout(filterProducts, 300);
-});
+const searchBarInput = document.getElementById('searchBar');
+if (searchBarInput) {
+  searchBarInput.addEventListener('input', (e) => {
+    const clearBtn = document.getElementById('searchBarClear');
+    if (clearBtn) {
+      clearBtn.style.display = e.target.value.trim() ? 'block' : 'none';
+    }
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(filterProducts, 300);
+  });
+}
+
+window.clearProductsSearch = function () {
+  const input = document.getElementById('searchBar');
+  const clearBtn = document.getElementById('searchBarClear');
+  if (input) input.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  filterProducts();
+};
 
 // Admin login
 // New: server-side auth uses X-Admin-Token header.
@@ -511,7 +610,7 @@ window.renderAdminProducts = function () {
       const name = escapeHtml(p.name || '');
       const price = escapeHtml(p.price || '');
       return `
-        <div class="quick-price-row">
+        <div class="quick-price-row" id="row-${p.id}">
           <h4>${name}</h4>
           <div class="quick-price-controls">
             <input type="text" value="${price}" id="quick-price-${p.id}" class="form-control" oninput="document.getElementById('quick-btn-${p.id}').disabled = false; document.getElementById('quick-btn-${p.id}').innerHTML = 'Save';">
@@ -560,9 +659,19 @@ window.renderAdminProducts = function () {
         </div>
         
         <div>
-          <label><input type="checkbox" id="visibility-${p.id}" ${p.visibility ? 'checked' : ''}> Visible</label>
-          <br><label><input type="checkbox" id="bestseller-${p.id}" ${p.is_bestseller ? 'checked' : ''}> Best Seller</label>
+          <label><input type="checkbox" id="visibility-${p.id}" ${p.visibility ? 'checked' : ''} onchange="markDirty(${p.id})"> Visible</label>
+          <br><label><input type="checkbox" id="bestseller-${p.id}" ${p.is_bestseller ? 'checked' : ''} onchange="markDirty(${p.id})"> Best Seller</label>
           <small class="helper-text">Visibility and ranking.</small>
+        </div>
+
+        <div>
+          <select id="lowstock-${p.id}" onchange="markDirty(${p.id})">
+            <option value="none" ${(p.low_stock_badge || 'none') === 'none' ? 'selected' : ''}>None (Normal)</option>
+            <option value="few" ${p.low_stock_badge === 'few' ? 'selected' : ''}>🔥 Few Items Left</option>
+            <option value="2" ${p.low_stock_badge === '2' ? 'selected' : ''}>🔥 Only 2 Left</option>
+            <option value="1" ${p.low_stock_badge === '1' ? 'selected' : ''}>🔥 Last Bottle</option>
+          </select>
+          <small class="helper-text">Low Stock Badge</small>
         </div>
         
         <div>
@@ -602,7 +711,8 @@ window.renderAdminProducts = function () {
         <button onclick="uploadImage(${p.id})">Upload Images</button>
         <button onclick="addImage(${p.id})">Add URL</button>
         <button class="btn" id="update-btn-${p.id}" onclick="updateProduct(${p.id})" disabled style="opacity: 0.5; cursor: not-allowed; transition: all 0.2s;">Update</button>
-        <button class="btn" onclick="deleteProduct(${p.id})" style="background-color: #FF6B6B;">Delete</button>
+        <button class="btn-secondary" id="revert-btn-${p.id}" onclick="revertProductChanges(${p.id})" disabled style="opacity: 0.4; cursor: not-allowed; padding: 6px 14px; border-radius: 6px; margin-left: 6px; transition: all 0.2s;">Revert</button>
+        <button class="btn" onclick="deleteProduct(${p.id})" style="background-color: #FF6B6B; margin-left: 6px;">Delete</button>
       </div>
     `;
   }).join('');
@@ -616,20 +726,168 @@ window.removeImage = function(btn, id) {
   }
 };
 
-
-
 // Mark a product row as dirty (unsaved changes)
 window.markDirty = function (id) {
   const btn = document.getElementById(`update-btn-${id}`);
+  const revertBtn = document.getElementById(`revert-btn-${id}`);
+
   if (btn && btn.disabled) {
     btn.disabled = false;
     btn.style.opacity = '1';
     btn.style.cursor = 'pointer';
     btn.innerHTML = 'Update (Unsaved)';
-    btn.style.backgroundColor = '#1A1A1A'; // Align with dark theme buttons
+    btn.style.backgroundColor = '#1A1A1A';
     btn.style.color = '#FFF';
   }
+
+  if (revertBtn && revertBtn.disabled) {
+    revertBtn.disabled = false;
+    revertBtn.style.opacity = '1';
+    revertBtn.style.cursor = 'pointer';
+    revertBtn.style.backgroundColor = '#555';
+    revertBtn.style.color = '#FFF';
+  }
 };
+
+// Revert product changes to saved original state
+window.revertProductChanges = function (id) {
+  const orig = window.adminProducts ? window.adminProducts.find(p => Number(p.id) === Number(id)) : null;
+  if (!orig) return;
+
+  const setVal = (elId, val) => {
+    const el = document.getElementById(elId);
+    if (el) el.value = val;
+  };
+
+  const setChk = (elId, val) => {
+    const el = document.getElementById(elId);
+    if (el) el.checked = Boolean(val);
+  };
+
+  setVal(`name-${id}`, orig.name || '');
+  setVal(`size-${id}`, orig.size || '');
+  setVal(`price-${id}`, orig.price || '');
+  setVal(`stock-${id}`, orig.stock || 'in stock');
+  setChk(`visibility-${id}`, orig.visibility !== false);
+  setChk(`bestseller-${id}`, orig.is_bestseller === true);
+  setVal(`lowstock-${id}`, orig.low_stock_badge || 'none');
+  setVal(`category-${id}`, orig.category || 'Middle Eastern Perfumes');
+  setVal(`gender-${id}`, orig.gender || 'Unisex');
+  setVal(`description-${id}`, orig.description || '');
+
+  const imgDiv = document.getElementById(`images-${id}`);
+  if (imgDiv) {
+    const images = Array.isArray(orig.images) ? orig.images : [];
+    imgDiv.innerHTML = images.map((img) => `<div><input type="text" value="${escapeHtml(img || '')}" oninput="markDirty(${id})"><button type="button" onclick="removeImage(this, ${id})">Remove</button></div>`).join('');
+  }
+
+  const updateBtn = document.getElementById(`update-btn-${id}`);
+  if (updateBtn) {
+    updateBtn.disabled = true;
+    updateBtn.style.opacity = '0.5';
+    updateBtn.style.cursor = 'not-allowed';
+    updateBtn.innerHTML = 'Update';
+    updateBtn.style.backgroundColor = '';
+  }
+
+  const revertBtn = document.getElementById(`revert-btn-${id}`);
+  if (revertBtn) {
+    revertBtn.disabled = true;
+    revertBtn.style.opacity = '0.4';
+    revertBtn.style.cursor = 'not-allowed';
+    revertBtn.style.backgroundColor = '';
+  }
+};
+
+// Admin Search Autocomplete & Jump Handler
+window.handleAdminSearchInput = function (e) {
+  const query = e.target.value.trim().toLowerCase();
+  const dropdown = document.getElementById('adminSearchAutocomplete');
+  const clearBtn = document.getElementById('adminSearchClear');
+
+  if (clearBtn) {
+    clearBtn.style.display = query ? 'block' : 'none';
+  }
+
+  // Live filter the main table as well
+  renderAdminProducts();
+
+  if (!query || !window.adminProducts) {
+    if (dropdown) dropdown.style.display = 'none';
+    return;
+  }
+
+  const matches = window.adminProducts.filter(p => (p.name || '').toLowerCase().includes(query)).slice(0, 6);
+
+  if (matches.length === 0) {
+    if (dropdown) dropdown.style.display = 'none';
+    return;
+  }
+
+  if (dropdown) {
+    dropdown.innerHTML = matches.map(p => `
+      <div class="admin-search-item" onclick="jumpToAdminProductRow(${p.id})" style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #EAE6DF; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important; background: #FFFFFF; transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6';" onmouseout="this.style.background='#FFFFFF';">
+        <div style="display: flex; flex-direction: column; gap: 2px; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important; pointer-events: none;">
+          <span style="font-weight: 600; color: #1A1A1A; font-size: 0.9rem; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important;">${escapeHtml(p.name)}</span>
+          <span style="font-size: 0.78rem; color: #777; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important;">${escapeHtml(p.category || '')} ${p.size ? '• ' + escapeHtml(p.size) : ''}</span>
+        </div>
+        <span style="font-weight: 700; color: #1A1A1A; font-size: 0.88rem; cursor: pointer !important; user-select: none !important; -webkit-user-select: none !important; pointer-events: none;">&#8377;${escapeHtml(p.price)}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  }
+};
+
+window.clearAdminSearch = function () {
+  const input = document.getElementById('adminSearch');
+  const clearBtn = document.getElementById('adminSearchClear');
+  const dropdown = document.getElementById('adminSearchAutocomplete');
+
+  if (input) input.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (dropdown) dropdown.style.display = 'none';
+
+  renderAdminProducts(); // Shows ALL products immediately in both Full Manage & Quick Price tabs
+};
+
+window.jumpToAdminProductRow = function (id) {
+  const p = window.adminProducts ? window.adminProducts.find(item => Number(item.id) === Number(id)) : null;
+  const input = document.getElementById('adminSearch');
+  const clearBtn = document.getElementById('adminSearchClear');
+  const dropdown = document.getElementById('adminSearchAutocomplete');
+
+  if (p && input) {
+    input.value = p.name; // Fill search box with selected perfume name
+  }
+
+  if (clearBtn) clearBtn.style.display = 'block';
+  if (dropdown) dropdown.style.display = 'none';
+
+  renderAdminProducts(); // Filter table view to selected product
+
+  setTimeout(() => {
+    const el = document.getElementById(`row-${id}`) || document.getElementById(`quick-price-${id}`)?.closest('.quick-price-row');
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const targetY = rect.top + scrollTop - (window.innerHeight / 2) + (rect.height / 2);
+
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+
+      el.classList.remove('product-row-highlight');
+      void el.offsetWidth;
+      el.classList.add('product-row-highlight');
+    }
+  }, 100);
+};
+
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('adminSearchAutocomplete');
+  const searchInput = document.getElementById('adminSearch');
+  if (dropdown && searchInput && !dropdown.contains(e.target) && !searchInput.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
 
 // Update product
 async function updateProduct(id) {
@@ -640,6 +898,7 @@ async function updateProduct(id) {
     const stock = document.getElementById(`stock-${id}`).value;
     const visibility = document.getElementById(`visibility-${id}`).checked;
     const is_bestseller = document.getElementById(`bestseller-${id}`).checked;
+    const low_stock_badge = document.getElementById(`lowstock-${id}`)?.value || 'none';
     const category = document.getElementById(`category-${id}`).value;
     const gender = document.getElementById(`gender-${id}`).value;
     const description = document.getElementById(`description-${id}`).value;
@@ -651,7 +910,7 @@ async function updateProduct(id) {
         'Content-Type': 'application/json',
         ...(adminToken ? { 'x-admin-token': adminToken } : {})
       },
-      body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, category, gender, description, images })
+      body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, low_stock_badge, category, gender, description, images })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -853,6 +1112,15 @@ function showAddForm() {
           <option value="Women">Women</option>
         </select>
       </div>
+      <div>
+        <label>Low Stock Badge</label>
+        <select id="add-low-stock" style="width:100%;padding:10px;">
+          <option value="none">None (Normal)</option>
+          <option value="few">🔥 Few Items Left</option>
+          <option value="2">🔥 Only 2 Left</option>
+          <option value="1">🔥 Last Bottle</option>
+        </select>
+      </div>
       <div style="grid-column: 1 / -1;">
         <label>Description</label>
         <textarea id="add-description" style="width:100%;padding:10px;min-height:90px;"></textarea>
@@ -934,6 +1202,7 @@ function showAddForm() {
     const description = document.getElementById('add-description').value;
     const visibility = document.getElementById('add-visibility').checked;
     const is_bestseller = document.getElementById('add-bestseller').checked;
+    const low_stock_badge = document.getElementById('add-low-stock').value;
 
     const imageInputs = Array.from(document.querySelectorAll('#add-images input[type="text"]'));
     const images = imageInputs.map(i => i.value.trim()).filter(Boolean);
@@ -955,7 +1224,7 @@ function showAddForm() {
           'Content-Type': 'application/json',
           ...(adminToken ? { 'x-admin-token': adminToken } : {})
         },
-        body: JSON.stringify({ name, size, price, stock, visibility, category, gender, description, is_bestseller, images })
+        body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, low_stock_badge, category, gender, description, images })
       });
 
       if (!res.ok) {
@@ -1101,20 +1370,38 @@ if (window.location.pathname === '/products') {
         const filtered = searchProducts.filter(p => p.name.toLowerCase().includes(query));
 
         if (filtered.length === 0) {
-          resultsContainer.innerHTML = '<div class="search-result-empty">No perfumes found</div>';
+          const rawQuery = e.target.value.trim();
+          resultsContainer.innerHTML = `
+            <div style="padding: 20px 16px; text-align: center; color: #666;">
+              <p style="margin-bottom: 12px; font-size: 0.9rem; color: #1A1A1A;">No matching perfumes for "<strong>${escapeHtml(rawQuery)}</strong>"</p>
+              <button type="button" onclick="closeNavSearchAndRequest('${escapeHtml(rawQuery)}');" style="padding: 10px 20px; border-radius: 20px; border: 1.5px solid #1A1A1A; background: #1A1A1A; color: #FFF; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                ✨ Request "${escapeHtml(rawQuery)}" via WhatsApp
+              </button>
+            </div>
+          `;
         } else {
-          resultsContainer.innerHTML = filtered.slice(0, 5).map(p => {
+          const rawQuery = e.target.value.trim();
+          const itemsHtml = filtered.slice(0, 4).map(p => {
             const img = p.images && p.images[0] ? escapeHtml(p.images[0]) : '/uploads/default.jpg';
             return `
               <a href="/product/${p.id}" class="search-result-item">
                 <img src="${img}" alt="${escapeHtml(p.name)}">
                 <div class="search-result-details">
                   <span class="search-result-name">${escapeHtml(p.name)}</span>
-                  <span class="search-result-price">₹${escapeHtml(p.price)}</span>
+                  <span class="search-result-price">&#8377;${escapeHtml(p.price)}</span>
                 </div>
               </a>
             `;
           }).join('');
+
+          const reqFooter = `
+            <div onclick="closeNavSearchAndRequest('${escapeHtml(rawQuery)}');" style="padding: 12px 16px; border-top: 1px solid #EAE6DF; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: #FAF9F6; font-size: 0.85rem; font-weight: 600; color: #1A1A1A; transition: background 0.2s;">
+              <span>✨ Don't see what you need? Request a fragrance</span>
+              <span style="font-size: 1.1rem; color: #D4AF37;">&rarr;</span>
+            </div>
+          `;
+
+          resultsContainer.innerHTML = itemsHtml + reqFooter;
         }
         resultsContainer.classList.add('active');
       }
@@ -1749,3 +2036,275 @@ document.getElementById('reviewForm')?.addEventListener('submit', async function
     if (btn) btn.disabled = false;
   }
 });
+
+// ─── Store Reviews & Admin Reviews Handlers ─────────────────────────────────────
+window.loadFeaturedReviews = async function () {
+  const track = document.getElementById('reviewsTrack');
+  if (!track) return;
+  try {
+    const res = await fetch('/api/store-reviews?featured=true');
+    if (!res.ok) throw new Error('HTTP Error');
+    const reviews = await res.json();
+    if (!reviews || reviews.length === 0) {
+      track.innerHTML = '<div class="review-card"><p>No reviews yet.</p></div>';
+      return;
+    }
+    track.innerHTML = reviews.map(r => {
+      const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+      const name = escapeHtml(r.author_name || r.reviewer_name || 'Verified Buyer');
+      const text = escapeHtml(r.content || r.comment || '');
+      return `
+        <div class="review-card">
+          <div class="review-stars">${stars}</div>
+          <p class="review-text">"${text}"</p>
+          <div class="reviewer-name">${name}</div>
+          <span class="verified-badge">✓ Verified Buyer</span>
+        </div>
+      `;
+    }).join('');
+
+    // Carousel autoscroll logic
+    if (window.reviewInterval) clearInterval(window.reviewInterval);
+    let scrollPos = 0;
+    window.reviewInterval = setInterval(() => {
+      if (track.matches(':hover')) return;
+      scrollPos += 300;
+      if (scrollPos > track.scrollWidth - track.clientWidth) scrollPos = 0;
+      track.scrollTo({ left: scrollPos, behavior: 'smooth' });
+    }, 3500);
+  } catch (err) {
+    console.error('Failed to load featured reviews:', err);
+  }
+};
+
+window.loadAllReviews = async function () {
+  const container = document.getElementById('allReviewsWall');
+  if (!container) return;
+  try {
+    const res = await fetch('/api/store-reviews');
+    if (!res.ok) throw new Error('HTTP Error');
+    const reviews = await res.json();
+    if (!reviews || reviews.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:#888;">No reviews yet. Be the first to leave one!</p>';
+      return;
+    }
+    container.innerHTML = reviews.map(r => {
+      const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+      const name = escapeHtml(r.author_name || r.reviewer_name || 'Verified Buyer');
+      const text = escapeHtml(r.content || r.comment || '');
+      const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString() : '';
+      return `
+        <div class="review-card" style="margin-bottom: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div class="review-stars">${stars}</div>
+            <span style="font-size:0.8rem; color:#888;">${dateStr}</span>
+          </div>
+          <p class="review-text">"${text}"</p>
+          <div class="reviewer-name">${name}</div>
+          <span class="verified-badge">✓ Verified Buyer</span>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Failed to load all reviews:', err);
+  }
+};
+
+window.loadAdminReviews = async function () {
+  const tbody = document.getElementById('admin-reviews-tbody');
+  if (!tbody) return;
+  try {
+    const token = sessionStorage.getItem('adminToken');
+    const res = await fetch('/api/admin/store-reviews', {
+      headers: token ? { 'x-admin-token': token } : {}
+    });
+    if (!res.ok) throw new Error('Failed to fetch admin reviews');
+    const reviews = await res.json();
+    if (!reviews || reviews.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No reviews found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = reviews.map(r => {
+      const name = escapeHtml(r.author_name || r.reviewer_name || '');
+      const text = escapeHtml(r.content || r.comment || '');
+      return `
+        <tr>
+          <td>${name}</td>
+          <td>${'★'.repeat(r.rating || 5)}</td>
+          <td style="max-width:300px;">${text}</td>
+          <td>${r.is_approved ? '<span style="color:#2E7D32;font-weight:600;">Approved</span>' : '<span style="color:#C62828;">Pending</span>'}</td>
+          <td>${r.is_featured ? '⭐ Featured' : 'Normal'}</td>
+          <td>
+            <button onclick="approveReview('${r.id}')" style="padding:4px 8px;margin-right:4px;">${r.is_approved ? 'Unapprove' : 'Approve'}</button>
+            <button onclick="featureReview('${r.id}')" style="padding:4px 8px;margin-right:4px;">${r.is_featured ? 'Unfeature' : 'Feature'}</button>
+            <button onclick="deleteReview('${r.id}')" style="background-color:#FF6B6B;color:#fff;padding:4px 8px;">Delete</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Failed to load admin reviews:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">Error loading reviews</td></tr>';
+  }
+};
+
+window.approveReview = async function (id) {
+  try {
+    const token = sessionStorage.getItem('adminToken');
+    const res = await fetch(`/api/admin/store-reviews/${id}/approve`, {
+      method: 'PUT',
+      headers: token ? { 'x-admin-token': token } : {}
+    });
+    if (!res.ok) throw new Error('Failed');
+    loadAdminReviews();
+  } catch (err) {
+    alert('Failed to update review approval');
+  }
+};
+
+window.featureReview = async function (id) {
+  try {
+    const token = sessionStorage.getItem('adminToken');
+    const res = await fetch(`/api/admin/store-reviews/${id}/feature`, {
+      method: 'PUT',
+      headers: token ? { 'x-admin-token': token } : {}
+    });
+    if (!res.ok) throw new Error('Failed');
+    loadAdminReviews();
+  } catch (err) {
+    alert('Failed to update review featured status');
+  }
+};
+
+window.deleteReview = async function (id) {
+  if (!confirm('Are you sure you want to delete this review?')) return;
+  try {
+    const token = sessionStorage.getItem('adminToken');
+    const res = await fetch(`/api/admin/store-reviews/${id}`, {
+      method: 'DELETE',
+      headers: token ? { 'x-admin-token': token } : {}
+    });
+    if (!res.ok) throw new Error('Failed');
+    loadAdminReviews();
+  } catch (err) {
+    alert('Failed to delete review');
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('reviewsTrack')) loadFeaturedReviews();
+  if (document.getElementById('allReviewsWall')) loadAllReviews();
+});
+
+// Footer Feedback Submission Handler
+window.handleFeedbackSubmit = function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const input = form.querySelector('input');
+  const msgDiv = form.parentElement.querySelector('#feedback-msg');
+  if (!input || !input.value.trim()) return;
+
+  const text = input.value.trim();
+  const waMsg = `Hi! Website Feedback / Suggestion:\n"${text}"`;
+  const url = `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+  
+  if (msgDiv) {
+    msgDiv.style.display = 'block';
+    msgDiv.style.color = '#4CAF50';
+    msgDiv.textContent = 'Opening WhatsApp to send your feedback... Thank you!';
+  }
+  
+  setTimeout(() => {
+    window.open(url, '_blank');
+    input.value = '';
+    if (msgDiv) msgDiv.style.display = 'none';
+  }, 800);
+};
+
+// ─── Request a Fragrance Handlers ────────────────────────────────────────────────
+window.openRequestModal = function () {
+  let modal = document.getElementById('requestFragranceModal');
+  if (!modal) {
+    const modalHtml = `
+      <div id="requestFragranceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #FFF; width: 100%; max-width: 460px; border-radius: 18px; padding: 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); position: relative;">
+          <button type="button" onclick="closeRequestModal()" style="position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 1.6rem; color: #888; cursor: pointer; line-height: 1;">&times;</button>
+
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 46px; height: 46px; border-radius: 50%; background: #FAF9F6; border: 1px solid #EAE6DF; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 1.3rem;">✨</div>
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 1.55rem; color: #1A1A1A; margin-bottom: 6px; font-weight: 700;">Request a Fragrance</h3>
+            <p style="font-size: 0.85rem; color: #666; margin: 0; line-height: 1.45;">Can't find your desired perfume? Tell us what you need and we'll source it for you via WhatsApp!</p>
+          </div>
+
+          <form onsubmit="handleRequestFragranceSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1A1A1A; margin-bottom: 5px;">Fragrance Name <span style="color: #D9534F;">*</span></label>
+              <input type="text" id="reqPerfumeName" placeholder="e.g. Creed Aventus / Khamrah Qahwa" required style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #DDD; font-size: 0.9rem; outline: none;">
+            </div>
+
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1A1A1A; margin-bottom: 5px;">Additional Notes (Optional)</label>
+              <textarea id="reqPerfumeNotes" rows="3" placeholder="e.g. Looking for best price, availability status, or urgent delivery..." style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #DDD; font-size: 0.9rem; outline: none; resize: none;"></textarea>
+            </div>
+
+            <button type="submit" style="width: 100%; padding: 13px; border-radius: 30px; border: none; background: #1A1A1A; color: #FFF; font-weight: 600; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.15); margin-top: 4px; transition: all 0.2s;">Send Request via WhatsApp</button>
+          </form>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    modal = document.getElementById('requestFragranceModal');
+  }
+
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+window.openRequestModalWithQuery = function (query) {
+  openRequestModal();
+  if (query && typeof query === 'string') {
+    const input = document.getElementById('reqPerfumeName');
+    if (input) input.value = query;
+  }
+};
+
+window.closeNavSearchAndRequest = function (query) {
+  const overlay = document.getElementById('navSearchOverlay');
+  const results = document.getElementById('navSearchResults');
+  const input = document.getElementById('navSearchInput');
+
+  if (overlay) overlay.classList.remove('active');
+  if (results) results.classList.remove('active');
+  if (input) input.value = '';
+
+  openRequestModalWithQuery(query);
+};
+
+window.closeRequestModal = function () {
+  const modal = document.getElementById('requestFragranceModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+};
+
+window.handleRequestFragranceSubmit = function (e) {
+  e.preventDefault();
+  const name = document.getElementById('reqPerfumeName')?.value?.trim();
+  const notes = document.getElementById('reqPerfumeNotes')?.value?.trim();
+
+  if (!name) return;
+
+  let msg = `Hi! I would like to request a fragrance:\n`;
+  msg += `• Fragrance: ${name}\n`;
+  if (notes) msg += `• Notes: ${notes}\n`;
+  msg += `Please let me know if you can source this!`;
+
+  const url = `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+
+  closeRequestModal();
+  e.target.reset();
+};
