@@ -161,6 +161,7 @@ function normalizeProduct(p) {
   safe.name = safe.name ? String(safe.name) : '';
   safe.size = safe.size ? String(safe.size) : '';
   safe.price = safe.price !== undefined && safe.price !== null ? String(safe.price) : '';
+  safe.mrp = safe.mrp !== undefined && safe.mrp !== null ? String(safe.mrp) : '';
   safe.stock = String(p.stock || 'in stock');
   safe.visibility = p.visibility !== false; // default true
   safe.is_bestseller = p.is_bestseller === true; // default false

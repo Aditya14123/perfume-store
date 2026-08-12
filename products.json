@@ -4,6 +4,7 @@
     "name": "Armaf Club de Nuit Intense Man Pure Parfum",
     "size": "150ml EDP",
     "price": "3600",
+    "mrp": "4500",
     "stock": "in stock",
     "visibility": true,
     "images": [
@@ -23,6 +24,7 @@
     "name": "Rasasi Hawas Ice",
     "size": "100ml EDP",
     "price": "3000",
+    "mrp": "3800",
     "stock": "in stock",
     "visibility": true,
     "images": [
@@ -40,6 +42,7 @@
     "name": "Lattafa Khamrah Qahwa",
     "size": "100ml EDP",
     "price": "2099",
+    "mrp": "2650",
     "stock": "in stock",
     "visibility": true,
     "category": "Middle Eastern Perfumes",
@@ -55,7 +58,8 @@
     "id": 1770118933153,
     "name": "Afnan Supremacy Collector's Edition",
     "size": "100ml EDP",
-    "price": "3800",
+    "price": "3700",
+    "mrp": "5200",
     "stock": "in stock",
     "visibility": true,
     "category": "Middle Eastern Perfumes",
@@ -82,7 +86,9 @@
       "/uploads/products/1781259024041/391072de43dab34afdc09456028538545b91812153df6a0939b4971483d7facb.jfif"
     ],
     "is_bestseller": false,
-    "gender": "Men"
+    "gender": "Men",
+    "mrp": "4500",
+    "low_stock_badge": "none"
   },
   {
     "id": 1781259024042,

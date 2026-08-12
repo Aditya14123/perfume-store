@@ -104,6 +104,23 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+function formatPriceHTML(priceStr, mrpStr, isLarge = false) {
+  const priceNum = parseFloat(String(priceStr).replace(/[^0-9.]/g, '')) || 0;
+  const mrpNum = parseFloat(String(mrpStr).replace(/[^0-9.]/g, '')) || 0;
+  const priceFormatted = priceNum ? priceNum.toLocaleString('en-IN') : String(priceStr || '');
+  const fontSize = isLarge ? '1.8rem' : '1.1rem';
+
+  if (mrpNum > priceNum && priceNum > 0) {
+    const discount = Math.round(((mrpNum - priceNum) / mrpNum) * 100);
+    const mrpFormatted = mrpNum.toLocaleString('en-IN');
+    return `
+      <span class="product-mrp" style="text-decoration: line-through; color: #888; font-weight: 500; font-size: ${isLarge ? '1.1rem' : '0.88rem'}; margin-right: 6px;">&#8377;${mrpFormatted}</span>
+      <span class="product-price" style="font-size: ${fontSize}; font-weight: 700; color: #1A1A1A;">&#8377;${priceFormatted}</span>
+      <span class="product-discount-badge" style="background: #E8F5E9; color: #2E7D32; font-size: ${isLarge ? '0.85rem' : '0.75rem'}; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: 6px; border: 1px solid #C8E6C9;">${discount}% OFF</span>
+    `;
+  }
+  return `<span class="product-price" style="font-size: ${fontSize}; font-weight: 700; color: #1A1A1A;">&#8377;${priceFormatted}</span>`;
+}
 
 function renderProducts(containerId, products) {
   const container = document.getElementById(containerId);
@@ -131,6 +148,7 @@ function renderProducts(containerId, products) {
     const name = escapeHtml(p.name || '');
     const size = escapeHtml(p.size || '');
     const price = escapeHtml(p.price || '');
+    const mrp = escapeHtml(p.mrp || '');
     const stock = escapeHtml(p.stock || '');
     const img = escapeHtml((p.images && p.images[0]) || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNGNUYwRUIiLz48dGV4dCB4PSIyMDAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjQ0NCOEE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5mDPC90ZXh0Pjx0ZXh0IHg9IjIwMCIgeT0iMjQwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTg4NzciIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBlcmZ1bWUgSW1hZ2U8L3RleHQ+PC9zdmc+');
     const stockClass = p.stock === 'out of stock' ? 'out-of-stock' : '';
@@ -156,7 +174,7 @@ function renderProducts(containerId, products) {
           <img src="${img}" alt="${name}">
           <h3>${name}</h3>
           <p>${size}</p>
-          <p class="price">&#8377;${price} (Approx)</p>
+          <div class="price" style="margin-bottom: 6px;">${formatPriceHTML(price, mrp)}</div>
           <p class="stock ${stockClass}">${stock}</p>
         </a>
         <div class="card-cart-footer">
@@ -237,9 +255,8 @@ async function loadProductDetail() {
             </div>
           ` : ''}
 
-          <div style="margin-bottom: 18px; display: flex; align-items: baseline; gap: 8px;">
-            <span style="font-size: 1.8rem; font-weight: 700; color: #1A1A1A; font-family: 'Inter', sans-serif;">&#8377;${escapeHtml(product.price || '')}</span>
-            <span style="font-size: 0.85rem; color: #777;">(Approx – confirm on WhatsApp)</span>
+          <div style="margin-bottom: 18px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+            ${formatPriceHTML(product.price, product.mrp, true)}
           </div>
 
           <p style="color: #444; line-height: 1.65; font-size: 0.98rem; margin-bottom: 20px;">${escapeHtml(product.description || '')}</p>
@@ -609,12 +626,20 @@ window.renderAdminProducts = function () {
     container.innerHTML = filtered.map(p => {
       const name = escapeHtml(p.name || '');
       const price = escapeHtml(p.price || '');
+      const mrp = escapeHtml(p.mrp || '');
       return `
         <div class="quick-price-row" id="row-${p.id}">
           <h4>${name}</h4>
-          <div class="quick-price-controls">
-            <input type="text" value="${price}" id="quick-price-${p.id}" class="form-control" oninput="document.getElementById('quick-btn-${p.id}').disabled = false; document.getElementById('quick-btn-${p.id}').innerHTML = 'Save';">
-            <button class="btn" id="quick-btn-${p.id}" onclick="quickUpdatePrice(${p.id})" disabled style="padding: 8px 16px;">Saved</button>
+          <div class="quick-price-controls" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column;">
+              <small style="font-size: 0.75rem; color: #666; font-weight: 600; margin-bottom: 2px;">Selling Price (₹)</small>
+              <input type="text" value="${price}" id="quick-price-${p.id}" class="form-control" style="width: 110px;" oninput="document.getElementById('quick-btn-${p.id}').disabled = false; document.getElementById('quick-btn-${p.id}').innerHTML = 'Save';">
+            </div>
+            <div style="display: flex; flex-direction: column;">
+              <small style="font-size: 0.75rem; color: #666; font-weight: 600; margin-bottom: 2px;">Box MRP (Optional)</small>
+              <input type="text" value="${mrp}" id="quick-mrp-${p.id}" placeholder="e.g. 4500" class="form-control" style="width: 120px;" oninput="document.getElementById('quick-btn-${p.id}').disabled = false; document.getElementById('quick-btn-${p.id}').innerHTML = 'Save';">
+            </div>
+            <button class="btn" id="quick-btn-${p.id}" onclick="quickUpdatePrice(${p.id})" disabled style="padding: 8px 18px; margin-top: 14px;">Saved</button>
           </div>
         </div>
       `;
@@ -627,6 +652,7 @@ window.renderAdminProducts = function () {
     const name = escapeHtml(p.name || '');
     const size = escapeHtml(p.size || '');
     const price = escapeHtml(p.price || '');
+    const mrp = escapeHtml(p.mrp || '');
     const description = escapeHtml(p.description || '');
     const category = escapeHtml(p.category || '');
     const images = Array.isArray(p.images) ? p.images : [];
@@ -647,7 +673,12 @@ window.renderAdminProducts = function () {
         
         <div>
           <input type="text" value="${price}" id="price-${p.id}" placeholder="Price">
-          <small class="helper-text">Price</small>
+          <small class="helper-text">Selling Price</small>
+        </div>
+
+        <div>
+          <input type="text" value="${mrp}" id="mrp-${p.id}" placeholder="Box MRP">
+          <small class="helper-text">Box MRP (Optional)</small>
         </div>
         
         <div>
@@ -895,6 +926,7 @@ async function updateProduct(id) {
     const name = document.getElementById(`name-${id}`).value;
     const size = document.getElementById(`size-${id}`).value;
     const price = document.getElementById(`price-${id}`).value;
+    const mrp = document.getElementById(`mrp-${id}`)?.value || '';
     const stock = document.getElementById(`stock-${id}`).value;
     const visibility = document.getElementById(`visibility-${id}`).checked;
     const is_bestseller = document.getElementById(`bestseller-${id}`).checked;
@@ -910,7 +942,7 @@ async function updateProduct(id) {
         'Content-Type': 'application/json',
         ...(adminToken ? { 'x-admin-token': adminToken } : {})
       },
-      body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, low_stock_badge, category, gender, description, images })
+      body: JSON.stringify({ name, size, price, mrp, stock, visibility, is_bestseller, low_stock_badge, category, gender, description, images })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -925,10 +957,11 @@ async function updateProduct(id) {
 window.quickUpdatePrice = async function (id) {
   try {
     const price = document.getElementById(`quick-price-${id}`).value;
+    const mrp = document.getElementById(`quick-mrp-${id}`)?.value || '';
     const product = window.adminProducts.find(p => p.id === id);
     if (!product) return;
 
-    const payload = { ...product, price };
+    const payload = { ...product, price, mrp };
     const adminToken = sessionStorage.getItem('adminToken');
     const response = await fetch(`/api/products/${id}`, {
       method: 'PUT',
@@ -947,6 +980,7 @@ window.quickUpdatePrice = async function (id) {
     }
     // Update local cache without full re-render
     product.price = price;
+    product.mrp = mrp;
   } catch (err) {
     console.error('Failed to quick update price:', err);
     alert('Failed to update price. Please try again.');
@@ -1088,8 +1122,12 @@ function showAddForm() {
         <input type="text" id="add-size" required class="form-control" style="width:100%;margin:0;" />
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;">
-        <label>Price</label>
+        <label>Selling Price</label>
         <input type="text" id="add-price" required class="form-control" style="width:100%;margin:0;" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <label>Box MRP (Optional)</label>
+        <input type="text" id="add-mrp" placeholder="e.g. 4500" class="form-control" style="width:100%;margin:0;" />
       </div>
       <div>
         <label>Stock</label>
@@ -1199,6 +1237,7 @@ function showAddForm() {
     const name = document.getElementById('add-name').value.trim();
     const size = document.getElementById('add-size').value.trim();
     const price = document.getElementById('add-price').value.trim();
+    const mrp = document.getElementById('add-mrp')?.value.trim() || '';
     const stock = document.getElementById('add-stock').value;
     const category = document.getElementById('add-category').value;
     const gender = document.getElementById('add-gender').value;
@@ -1227,7 +1266,7 @@ function showAddForm() {
           'Content-Type': 'application/json',
           ...(adminToken ? { 'x-admin-token': adminToken } : {})
         },
-        body: JSON.stringify({ name, size, price, stock, visibility, is_bestseller, low_stock_badge, category, gender, description, images })
+        body: JSON.stringify({ name, size, price, mrp, stock, visibility, is_bestseller, low_stock_badge, category, gender, description, images })
       });
 
       if (!res.ok) {
@@ -1569,11 +1608,91 @@ function updateOrderUI() {
   }
 }
 
+// Pre-checkout cart stock & price validator
+window.validateCartStock = async function (silent = false) {
+  if (!cartItems || cartItems.length === 0) return true;
+
+  try {
+    const res = await fetch('/api/products');
+    if (!res.ok) return true;
+    const latestProducts = await res.json();
+    
+    let itemsChanged = false;
+    let changeMessages = [];
+    const updatedCart = [];
+
+    for (const item of cartItems) {
+      const liveProduct = latestProducts.find(p => String(p.id) === String(item.productId));
+
+      // Case A: Product deleted or hidden (visibility === false)
+      if (!liveProduct || liveProduct.visibility === false) {
+        itemsChanged = true;
+        changeMessages.push(`• "${item.name}" is no longer available and was removed from your cart.`);
+        await fetch(`/api/cart/${item.productId}`, { method: 'DELETE', headers: getCartHeaders() }).catch(() => {});
+        continue;
+      }
+
+      // Case B: Product marked out of stock
+      if (liveProduct.stock === 'out of stock') {
+        itemsChanged = true;
+        changeMessages.push(`• "${item.name}" is currently out of stock and was removed from your cart.`);
+        await fetch(`/api/cart/${item.productId}`, { method: 'DELETE', headers: getCartHeaders() }).catch(() => {});
+        continue;
+      }
+
+      // Case C: Price changed
+      const livePriceStr = String(liveProduct.price || '');
+      if (String(item.price) !== livePriceStr) {
+        itemsChanged = true;
+        changeMessages.push(`• Price for "${item.name}" was updated from ₹${item.price} to ₹${livePriceStr}.`);
+        item.price = livePriceStr;
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { ...getCartHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: item.productId, name: item.name, size: item.size, price: livePriceStr, image: item.image })
+        }).catch(() => {});
+      }
+
+      updatedCart.push(item);
+    }
+
+    if (itemsChanged) {
+      cartItems = updatedCart;
+      updateOrderUI();
+      renderOrderItems();
+
+      if (!silent && changeMessages.length > 0) {
+        alert('Cart Availability Notice:\n\n' + changeMessages.join('\n'));
+      }
+      return false; // Validation updated items
+    }
+  } catch (err) {
+    console.error('Failed to validate cart stock:', err);
+  }
+  return true;
+};
+
+// Tab-Focus Revalidation (Silent auto-refresh when user returns to browser tab)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (window.location.pathname.startsWith('/product/')) {
+      loadProductDetail();
+    }
+    if (window.location.pathname === '/products' || window.location.pathname === '/') {
+      if (typeof loadProducts === 'function') loadProducts('allProducts');
+    }
+    if (typeof cartItems !== 'undefined' && cartItems.length > 0) {
+      window.validateCartStock(true);
+    }
+  }
+});
+
 window.showOrderModal = function () {
   let modal = document.getElementById('orderModal');
   if (modal) {
     modal.style.display = 'flex';
     renderOrderItems();
+    window.validateCartStock(false);
   }
 };
 
@@ -1634,11 +1753,19 @@ function renderOrderItems() {
 }
 
 // Send to WhatsApp
-window.sendToWhatsApp = function () {
+window.sendToWhatsApp = async function () {
   if (cartItems.length === 0) {
     alert('Your cart is empty!');
     return;
   }
+
+  // Pre-checkout live stock & price validation
+  const isValid = await window.validateCartStock(false);
+  if (!isValid) {
+    // Cart was updated due to stock/price changes, stop checkout so user can review updated cart
+    return;
+  }
+
   let message = 'Hi, I want to order:\n\n';
   let total = 0;
   cartItems.forEach((item, index) => {
